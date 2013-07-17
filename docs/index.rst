@@ -203,7 +203,7 @@ You can pickle events if you need to serialize them. (We do this to send invites
     event = service.calendar().new_event()
     
     event.subject = u"80s Movie Night"
-    event.start=datetime(2013,1,1,15,0,0, tzinfo=timezone("US/Pacific")),
+    event.start=datetime(2013,1,1,15,0,0, tzinfo=timezone("US/Pacific"))
     event.end=datetime(2013,1,1,21,0,0, tzinfo=timezone("US/Pacific"))
 
     # Pickle event
@@ -211,7 +211,7 @@ You can pickle events if you need to serialize them. (We do this to send invites
 
     # Unpickle
     rehydrated_event = pickle.loads(pickled_event)
-    print rehydrated_event.subject # same as before
+    print rehydrated_event.subject # "80s Movie Night"
 
 
 Changelog
