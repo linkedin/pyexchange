@@ -13,7 +13,7 @@ except:
 setup(
   name='pyexchange',
   version='0.3',
-  url='https://gitli.corp.linkedin.com/pyexchange/pyexchange',
+  url='https://github.com/linkedin/pyexchange',
   license='Apache',
   author='Rachel Sanders',
   author_email='rsanders@linkedin.com',
