@@ -7,6 +7,11 @@ It's incomplete at the moment - it only handles calendar events. We've open sour
 
 If you're interested, please see the CONTRIBUTING notes in the repo for hints on where to get started.
 
+Documentation
+-------------
+
+Go to https://pyexchange.readthedocs.org for the most recent, up-to-date version of documentation.
+
 Installation
 ------------
 
@@ -37,27 +42,24 @@ Help in this area would be appreciated.
 About
 -----
 
-Once upon a time there was a beautiful princess, who just wanted to connect  her web application to the royal Microsoft Exchange server. She sent out her knights to find her an appropriate Python library, but none returned. 
+Once upon a time there was a beautiful princess, who wanted to connect her web application to the royal Microsoft Exchange server.
 
-So she decided to make her own.
+The princess first tried all manner of SOAP libraries, but found them broken, or slow, or not unicode compliant, or plain just didn't work with Exchange.
 
-The princess first tried all manner of SOAP libraries, but found them broken, or not unicode compliant, or plain just didn't work with Exchange. 
+"This totally bites," said the princess. "I need like four commands and I don't want to make my own SOAP library."
 
-"This totally bites," said the princess. "I just need like four commands and I don't want to rule over an entire SOAP fork."
-
-She then discovered Microsoft had excellent documentation on its Exchange services and had full XML samples. 
+She then discovered Microsoft had excellent documentation on its Exchange services with full XML samples.
 
 "Bitchin," said the princess, who had watched too many 80s movies recently. "I'll just write XML instead."
 
-So she did, and it worked, and there was much feasting and celebration, followed by a royal battle with accounting over what constituted "reasonable" mead expenses.
+So she did, and it worked, and there was much feasting and celebration, followed by a royal battle with accounting over what constituted reasonable mead expenses.
 
 And everybody lived happily ever after.
 
 THE END
 
 
-Documentation
--------------
 
-For the most complete and up-to-date documentation, see **FIXME add read the docs url**.
+
+
 

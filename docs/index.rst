@@ -199,11 +199,17 @@ You can pickle events if you need to serialize them. (We do this to send invites
 
     import pickle
 
-    # ...create event
+    # create event
+    event = service.calendar().new_event()
+    
+    event.subject = u"80s Movie Night"
+    event.start=datetime(2013,1,1,15,0,0, tzinfo=timezone("US/Pacific")),
+    event.end=datetime(2013,1,1,21,0,0, tzinfo=timezone("US/Pacific"))
 
-    print event.subject
+    # Pickle event
     pickled_event = pickle.dumps(event)
 
+    # Unpickle
     rehydrated_event = pickle.loads(pickled_event)
     print rehydrated_event.subject # same as before
 
@@ -216,7 +222,7 @@ Changelog
 Support
 -------
 
-To report bugs or get support, please use the Github issue tracker.
+To report bugs or get support, please use the `Github issue tracker <https://github.com/linkedin/pyexchange/issues>`_.
 
 Indices and tables
 ==================
