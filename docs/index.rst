@@ -64,7 +64,7 @@ Setting up the connection
 
 To do anything in Exchange, you first need to create the Exchange service object::
 
-   from pyexchange import Exchange2010Service, ExchangeNTLMAuthConnection
+    from pyexchange import Exchange2010Service, ExchangeNTLMAuthConnection
 
     URL = u'https://your.email.server.com.here/EWS/Exchange.asmx'
     USERNAME = u'YOURDOMAIN\\yourusername'
