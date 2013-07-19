@@ -12,14 +12,14 @@ except:
 
 setup(
   name='pyexchange',
-  version='0.3.1',
+  version='0.3',
   url='https://github.com/linkedin/pyexchange',
   license='Apache',
   author='Rachel Sanders',
   author_email='rsanders@linkedin.com',
   maintainer='Rachel Sanders',
   maintainer_email='rsanders@linkedin.com',
-  description='A simple library to talk to Microsoft Exchange Web Services (EWS)',
+  description='A simple library to talk to Microsoft Exchange',
   long_description=README + '\n\n' + CHANGES,
   zip_safe=False,
   test_suite="tests",
