@@ -12,7 +12,7 @@ except:
 
 setup(
   name='pyexchange',
-  version='0.3',
+  version='0.4-dev',
   url='https://github.com/linkedin/pyexchange',
   license='Apache',
   author='Rachel Sanders',
