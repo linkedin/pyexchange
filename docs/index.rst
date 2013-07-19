@@ -81,6 +81,9 @@ Creating an event
 `````````````````
 To create an event, use the ``new_event`` method::
 
+    from datetime import datetime
+    from pytz import timezone
+
     # You can set event properties when you instantiate the event...
     event = service.calendar().new_event(
       subject=u"80s Movie Night",
