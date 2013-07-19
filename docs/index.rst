@@ -106,9 +106,9 @@ To create an event, use the ``new_event`` method::
 
 For a full list of fields, see the :class:`.Exchange2010CalendarEvent` documentation.
 
-When you create an event, Exchange creates a unique identifier for it. You need this key to get the event later.
+When you create an event, Exchange creates a unique identifier for it. You need this to get the event later.
 
-After you create the object, the ``id`` attribute is populated with the key::
+After you create the object, the ``id`` attribute is populated with this identifier::
 
     print event.id  # prints None
 
@@ -117,16 +117,16 @@ After you create the object, the ``id`` attribute is populated with the key::
 
     print event.id # prints Exchange key
 
-If you save this key, be warned the keys are quite long - easily 130+ characters.
+If you save this key, be warned they're quite long - easily 130+ characters.
 
 If we could not create the event, a ``pyexchange.exceptions.FailedExchangeException`` exception is thrown.
 
 Getting an event
 ````````````````
 
-To get an existing event, you'll need its Exchange id.
+To work with any existing event, you must know its unique identifier in Exchange. For more information, see the `MSDN Exchange Web Services documentation <http://msdn.microsoft.com/en-us/library/aa580234(v=exchg.140).aspx>`_.
 
-Then get the event using the ``get_event`` method::
+Once you have the id, get the event using the ``get_event`` method::
 
     EXCHANGE_ID = u'3123132131231231'
 
@@ -145,6 +145,8 @@ Then get the event using the ``get_event`` method::
       print person.name
       print person.email
       print person.response # Accepted/Declined
+
+For a full list of fields, see the :class:`.Exchange2010CalendarEvent` documentation.
 
 If the id doesn't match anything in Exchange, a ``pyexchange.exceptions.ExchangeItemNotFoundException`` exception is thrown.
 
