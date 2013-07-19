@@ -19,13 +19,13 @@ PyExchange supports Python 2.6 and 2.7. Our code is compatible with 3.3+, but se
 
 We support Exchange Server version 2010. Others will likely work but are not tested.
 
-To install, use pip::
+To install, use pip:
 
     pip install pyexchange
 
 PyExchange requires [lxml](http://lxml.de) for XML handling. This will be installed by pip on most systems. If you run into problems, please see lxml's [installation instructions](http://lxml.de/installation.html).
 
-To install from source, download the source code, then run::
+To install from source, download the source code, then run:
 
     python setup.py install
 
