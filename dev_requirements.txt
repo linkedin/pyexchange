@@ -1,3 +1,5 @@
 sphinx
 nose
 httpretty
+flake8
+

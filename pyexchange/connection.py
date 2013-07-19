@@ -9,12 +9,12 @@ from ntlm import HTTPNtlmAuthHandler
 
 try:
   import urllib2
-except ImportError: #Python 3
+except ImportError:  # Python 3
   import urllib.request as urllib2
 
 try:
   from httplib import HTTPException
-except ImportError: #Python 3
+except ImportError:  # Python 3
   from http.client import HTTPException
 
 from .exceptions import FailedExchangeException

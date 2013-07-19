@@ -4,6 +4,9 @@ Licensed under the Apache License, Version 2.0 (the "License");?you may not use 
 
 Unless required by applicable law or agreed to in writing, software?distributed under the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 """
+# TODO get flake8 to just ignore the lines I want, dangit
+# flake8: noqa
+
 import logging
 from ..base.calendar import BaseExchangeCalendarEvent, BaseExchangeCalendarService, ExchangeEventOrganizer, ExchangeEventResponse
 from ..base.soap import ExchangeServiceSOAP
