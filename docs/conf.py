@@ -16,7 +16,8 @@ import sys, os
 # If extensions (or modules to document with autodoc) are in another directory,
 # add these directories to sys.path here. If the directory is relative to the
 # documentation root, use os.path.abspath to make it absolute, like shown here.
-sys.path.insert(0, os.path.abspath('../pyexchange'))
+sys.path.append(os.path.abspath('.'))
+sys.path.append(os.path.abspath('..'))
 
 # -- General configuration -----------------------------------------------------
 
@@ -231,7 +232,7 @@ man_pages = [
 #  dir menu entry, description, category)
 texinfo_documents = [
   ('index', 'PyExchange', u'PyExchange Documentation',
-   u'LinkedIn, Inc', 'PyExchange', 'One line description of project.',
+   u'LinkedIn, Inc', 'PyExchange', 'A simple library to connect to Microsoft Exchange.',
    'Miscellaneous'),
 ]
 

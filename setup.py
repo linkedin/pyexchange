@@ -1,5 +1,5 @@
 import os
-from setuptools import setup
+from setuptools import setup, find_packages
 
 here = os.path.abspath(os.path.dirname(__file__))
 
@@ -25,7 +25,7 @@ setup(
   test_suite="tests",
   platforms='any',
   include_package_data=True,
-  packages=['pyexchange'],
+  packages=find_packages('.', exclude=['test*']),
   install_requires=['lxml', 'pytz', 'python-ntlm'],
   classifiers=[
     'Development Status :: 3 - Alpha',
