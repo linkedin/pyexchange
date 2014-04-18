@@ -19,3 +19,8 @@ Internal company release - RELEASE THE KRAKEN.
 Initial public release. 
 
 
+0.3.1 (April 18, 2014)
+----------------------
+
+Integrating some more granular exception handling.
+
