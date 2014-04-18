@@ -10,7 +10,7 @@ Unless required by applicable law or agreed to in writing, software?distributed 
 import logging
 from ..base.calendar import BaseExchangeCalendarEvent, BaseExchangeCalendarService, ExchangeEventOrganizer, ExchangeEventResponse
 from ..base.soap import ExchangeServiceSOAP
-from ..exceptions import FailedExchangeException, ExchangeStaleChangeKeyException, ExchangeItemNotFoundException
+from ..exceptions import FailedExchangeException, ExchangeStaleChangeKeyException, ExchangeItemNotFoundException, ExchangeInternalServerTransientErrorException, ExchangeIrresolvableConflictException
 
 from . import soap_request
 
@@ -55,7 +55,13 @@ class Exchange2010Service(ExchangeServiceSOAP):
         raise ExchangeStaleChangeKeyException(u"Exchange Fault (%s) from Exchange server" % code.text)
       elif code.text == u"ErrorItemNotFound":
         # exchange_invite_key wasn't found on the server
-        raise ExchangeItemNotFoundException(u"Exchange Fault(%s) from Exchange server" % code.text)
+        raise ExchangeItemNotFoundException(u"Exchange Fault (%s) from Exchange server" % code.text)
+      elif code.text == u"ErrorIrresolvableConflict":
+        # tried to update an item with an old change key
+        raise ExchangeIrresolvableConflictException(u"Exchange Fault (%s) from Exchange server" % code.text)
+      elif code.text == u"ErrorInternalServerTransientError":
+        # temporary internal server error. throw a special error so we can retry
+        raise ExchangeInternalServerTransientErrorException(u"Exchange Fault (%s) from Exchange server" % code.text)
       elif code.text != u"NoError":
         raise FailedExchangeException(u"Exchange Fault (%s) from Exchange server" % code.text)
 
