@@ -9,10 +9,13 @@ Unless required by applicable law or agreed to in writing, software?distributed 
 
 import logging
 from ..base.calendar import BaseExchangeCalendarEvent, BaseExchangeCalendarService, ExchangeEventOrganizer, ExchangeEventResponse
+from ..base.folder import BaseExchangeFolder, BaseExchangeFolderService
 from ..base.soap import ExchangeServiceSOAP
 from ..exceptions import FailedExchangeException, ExchangeStaleChangeKeyException, ExchangeItemNotFoundException
 
 from . import soap_request
+
+from lxml import etree
 
 log = logging.getLogger("pyexchange")
 
@@ -27,6 +30,9 @@ class Exchange2010Service(ExchangeServiceSOAP):
 
   def contacts(self):
     raise NotImplementedError("Sorry - nothin' here. Feel like adding it? :)")
+
+  def folder(self):
+    return Exchange2010FolderService(service=self)
 
   def _send_soap_request(self, body, headers=None, retries=2, timeout=30, encoding="utf-8"):
     headers = [("Accept", "text/xml"), ("Content-type", "text/xml; charset=%s " % encoding)]
@@ -299,3 +305,111 @@ class Exchange2010CalendarEvent(BaseExchangeCalendarEvent):
       result.append(attendee_properties)
 
     return result
+
+
+class Exchange2010FolderService(BaseExchangeFolderService):
+
+  def folder(self, id=None, **kwargs):
+    return Exchange2010Folder(service=self.service, id=id, **kwargs)
+
+  def get_folder(self, id):
+    return Exchange2010Folder(service=self.service, id=id)
+
+  def new_folder(self, **properties):
+    return Exchange2010Folder(service=self.service, **properties)
+
+  def find_folder(self, parent_id):
+
+    body = soap_request.find_folder(parent_id=parent_id, format=u'AllProperties')
+    response_xml = self.service.send(body)
+    return self._parse_response_for_find_folder(response_xml)
+
+  def _parse_response_for_find_folder(self, response):
+
+    result = []
+    folders = response.xpath(u'//t:Folders/t:*', namespaces=soap_request.NAMESPACES)
+    for folder in folders:
+      result.append(
+        Exchange2010Folder(
+          service=self.service,
+          xml=etree.fromstring(etree.tostring(folder))  # Might be a better way to do this
+        )
+      )
+
+    return result
+
+
+class Exchange2010Folder(BaseExchangeFolder):
+
+  def _init_from_service(self, id):
+
+    body = soap_request.get_folder(folder_id=id, format=u'AllProperties')
+    response_xml = self.service.send(body)
+    properties = self._parse_response_for_get_folder(response_xml)
+
+    self._update_properties(properties)
+
+    return self
+
+  def _init_from_xml(self, xml):
+
+    properties = self._parse_response_for_get_folder(xml)
+    self._update_properties(properties)
+
+    return self
+
+  def create(self):
+
+    # self.validate()
+    body = soap_request.new_folder(self)
+
+    response_xml = self.service.send(body)
+    self._id, self._change_key = self._parse_id_and_change_key_from_response(response_xml)
+
+    return self
+
+  def delete(self):
+    body = soap_request.delete_folder(self)
+
+    response_xml = self.service.send(body)
+    self._id = None
+    self._change_key = None
+
+    return self
+
+  def _parse_response_for_get_folder(self, response):
+
+    path = response.xpath(u'//t:Folder | //t:CalendarFolder', namespaces=soap_request.NAMESPACES)[0]
+    result = self._parse_folder_properties(path)
+    return result
+
+  def _parse_folder_properties(self, response):
+
+    property_map = {
+      u'display_name'       : { u'xpath' : u't:DisplayName'},
+    }
+
+    self._id, self._change_key = self._parse_id_and_change_key_from_response(response)
+    self._parent_id = self._parse_parent_id_and_change_key_from_response(response)[0]
+
+    return self.service._xpath_to_dict(element=response, property_map=property_map, namespace_map=soap_request.NAMESPACES)
+
+  def _parse_id_and_change_key_from_response(self, response):
+
+    id_elements = response.xpath(u't:FolderId', namespaces=soap_request.NAMESPACES)
+
+    if id_elements:
+      id_element = id_elements[0]
+      return id_element.get(u"Id", None), id_element.get(u"ChangeKey", None)
+    else:
+      return None, None
+
+  def _parse_parent_id_and_change_key_from_response(self, response):
+
+    id_elements = response.xpath(u't:ParentFolderId', namespaces=soap_request.NAMESPACES)
+
+    if id_elements:
+      id_element = id_elements[0]
+      return id_element.get(u"Id", None), id_element.get(u"ChangeKey", None)
+    else:
+      return None, None

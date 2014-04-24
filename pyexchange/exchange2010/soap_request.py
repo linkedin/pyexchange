@@ -19,6 +19,11 @@ T = ElementMaker(namespace=TYPE_NS, nsmap=NAMESPACES)
 EXCHANGE_DATE_FORMAT = u"%Y-%m-%dT%H:%M:%SZ"
 
 
+def exchange_header():
+
+  return T.RequestServerVersion({u'Version': u'Exchange2010'})
+
+
 def resource_node(element, resources):
   """
   Helper function to generate a person/conference room node from an email address
@@ -90,6 +95,76 @@ def get_item(exchange_id, format=u"Default"):
     ),
     M.ItemIds(
       T.ItemId(Id=exchange_id)
+    )
+  )
+  return root
+
+
+def get_folder(folder_id, format=u"Default"):
+
+  distinguished_ids = (
+    'calendar', 'contacts', 'deleteditems', 'drafts', 'inbox', 'journal', 'notes', 'outbox', 'sentitems',
+    'tasks', 'msgfolderroot', 'root', 'junkemail', 'searchfolders', 'voicemail', 'recoverableitemsroot',
+    'recoverableitemsdeletions', 'recoverableitemsversions', 'recoverableitemspurges', 'archiveroot',
+    'archivemsgfolderroot', 'archivedeleteditems', 'archiverecoverableitemsroot',
+    'Archiverecoverableitemsdeletions', 'Archiverecoverableitemsversions', 'Archiverecoverableitemspurges',
+  )
+
+  id = T.DistinguishedFolderId(Id=folder_id) if folder_id in distinguished_ids else T.FolderId(Id=folder_id)
+
+  root = M.GetFolder(
+    M.FolderShape(
+      T.BaseShape(format)
+    ),
+    M.FolderIds(id)
+  )
+  return root
+
+
+def new_folder(folder):
+
+  distinguished_ids = (
+    'calendar', 'contacts', 'deleteditems', 'drafts', 'inbox', 'journal', 'notes', 'outbox', 'sentitems',
+    'tasks', 'msgfolderroot', 'root', 'junkemail', 'searchfolders', 'voicemail', 'recoverableitemsroot',
+    'recoverableitemsdeletions', 'recoverableitemsversions', 'recoverableitemspurges', 'archiveroot',
+    'archivemsgfolderroot', 'archivedeleteditems', 'archiverecoverableitemsroot',
+    'Archiverecoverableitemsdeletions', 'Archiverecoverableitemsversions', 'Archiverecoverableitemspurges',
+  )
+
+  id = T.DistinguishedFolderId(Id=folder.parent_id) if folder.parent_id in distinguished_ids else T.FolderId(Id=folder.parent_id)
+
+  if folder.folder_type == u'Folder':
+    folder_node = T.Folder(T.DisplayName(folder.display_name))
+  elif folder.folder_type == u'CalendarFolder':
+    folder_node = T.CalendarFolder(T.DisplayName(folder.display_name))
+
+  root = M.CreateFolder(
+    M.ParentFolderId(id),
+    M.Folders(folder_node)
+  )
+  return root
+
+
+def find_folder(parent_id, format=u"Default"):
+
+  root = M.FindFolder(
+    {u'Traversal': u'Shallow'},
+    M.FolderShape(
+      T.BaseShape(format)
+    ),
+    M.ParentFolderIds(
+      T.DistinguishedFolderId(Id=parent_id)
+    )
+  )
+  return root
+
+
+def delete_folder(folder):
+
+  root = M.DeleteFolder(
+    {u'DeleteType': 'HardDelete'},
+    M.FolderIds(
+      T.FolderId(Id=folder.id)
     )
   )
   return root
@@ -200,12 +275,12 @@ def delete_event(event):
 
     """
     root = M.DeleteItem(
-            M.ItemIds(
-              T.ItemId(Id=event.id, ChangeKey=event.change_key)
-            ),
-          DeleteType="HardDelete",
-          SendMeetingCancellations="SendToAllAndSaveCopy",
-          AffectedTaskOccurrences="AllOccurrences"
+      M.ItemIds(
+        T.ItemId(Id=event.id, ChangeKey=event.change_key)
+      ),
+      DeleteType="HardDelete",
+      SendMeetingCancellations="SendToAllAndSaveCopy",
+      AffectedTaskOccurrences="AllOccurrences"
     )
 
     return root
@@ -226,17 +301,16 @@ def update_item(event, updated_attributes, send_only_to_changed_attendees=False)
   SEND_MEETING_INVITES = u"SendToChangedAndSaveCopy" if send_only_to_changed_attendees else u"SendToAllAndSaveCopy"
 
   root = M.UpdateItem(
-            M.ItemChanges(
-              T.ItemChange(
-                T.ItemId(Id=event.id, ChangeKey=event.change_key),
-                T.Updates()
-              )
-
-            ),
-          ConflictResolution=u"AlwaysOverwrite",
-          MessageDisposition=u"SendAndSaveCopy",
-          SendMeetingInvitationsOrCancellations=SEND_MEETING_INVITES
-    )
+    M.ItemChanges(
+      T.ItemChange(
+        T.ItemId(Id=event.id, ChangeKey=event.change_key),
+        T.Updates()
+      )
+    ),
+    ConflictResolution=u"AlwaysOverwrite",
+    MessageDisposition=u"SendAndSaveCopy",
+    SendMeetingInvitationsOrCancellations=SEND_MEETING_INVITES
+  )
 
   update_node = root.xpath(u'/m:UpdateItem/m:ItemChanges/t:ItemChange/t:Updates', namespaces=NAMESPACES)[0]
 
