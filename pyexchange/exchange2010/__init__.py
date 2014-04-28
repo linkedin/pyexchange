@@ -415,6 +415,10 @@ class Exchange2010Folder(BaseExchangeFolder):
 
     response_xml = self.service.send(soap_request.move_folder(self, folder_id))  # noqa
 
+    result_id, result_key = self._parse_id_and_change_key_from_response(response_xml)
+    if self.id != result_id:
+      raise ValueError(u"MoveFolder returned success but requested folder not moved")
+
     self.parent_id = folder_id
     return self
 
