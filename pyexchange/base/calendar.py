@@ -26,8 +26,9 @@ RESPONSES = [RESPONSE_ACCEPTED, RESPONSE_DECLINED, RESPONSE_TENTATIVE, RESPONSE_
 
 class BaseExchangeCalendarService(object):
 
-  def __init__(self, service):
+  def __init__(self, service, calendar_id):
     self.service = service
+    self.calendar_id = calendar_id
 
   def event(self, id, *args, **kwargs):
     raise NotImplementedError
@@ -45,6 +46,7 @@ class BaseExchangeCalendarEvent(object):
   _change_key = None  # Exchange requires a second key when updating/deleting the event
 
   service = None
+  calendar_id = None
 
   subject = u''
   start = None
@@ -64,8 +66,9 @@ class BaseExchangeCalendarEvent(object):
   # these attributes can be pickled, or output as JSON
   DATA_ATTRIBUTES = [u'_id', u'subject', u'start', u'end', u'location', u'html_body', u'text_body', u'organizer', u'_attendees', u'_resources']
 
-  def __init__(self, service, id=None, **kwargs):
+  def __init__(self, service, id=None, calendar_id=u'calendar', **kwargs):
     self.service = service
+    self.calendar_id = calendar_id
 
     if id is None:
       self._update_properties(kwargs)

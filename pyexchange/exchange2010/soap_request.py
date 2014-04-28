@@ -147,14 +147,22 @@ def new_folder(folder):
 
 def find_folder(parent_id, format=u"Default"):
 
+  distinguished_ids = (
+    'calendar', 'contacts', 'deleteditems', 'drafts', 'inbox', 'journal', 'notes', 'outbox', 'sentitems',
+    'tasks', 'msgfolderroot', 'root', 'junkemail', 'searchfolders', 'voicemail', 'recoverableitemsroot',
+    'recoverableitemsdeletions', 'recoverableitemsversions', 'recoverableitemspurges', 'archiveroot',
+    'archivemsgfolderroot', 'archivedeleteditems', 'archiverecoverableitemsroot',
+    'Archiverecoverableitemsdeletions', 'Archiverecoverableitemsversions', 'Archiverecoverableitemspurges',
+  )
+
+  id = T.DistinguishedFolderId(Id=parent_id) if parent_id in distinguished_ids else T.FolderId(Id=parent_id)
+
   root = M.FindFolder(
     {u'Traversal': u'Shallow'},
     M.FolderShape(
       T.BaseShape(format)
     ),
-    M.ParentFolderIds(
-      T.DistinguishedFolderId(Id=parent_id)
-    )
+    M.ParentFolderIds(id)
   )
   return root
 
@@ -223,13 +231,21 @@ def new_event(event):
 </m:CreateItem>
   """
 
+  distinguished_ids = (
+    'calendar', 'contacts', 'deleteditems', 'drafts', 'inbox', 'journal', 'notes', 'outbox', 'sentitems',
+    'tasks', 'msgfolderroot', 'root', 'junkemail', 'searchfolders', 'voicemail', 'recoverableitemsroot',
+    'recoverableitemsdeletions', 'recoverableitemsversions', 'recoverableitemspurges', 'archiveroot',
+    'archivemsgfolderroot', 'archivedeleteditems', 'archiverecoverableitemsroot',
+    'Archiverecoverableitemsdeletions', 'Archiverecoverableitemsversions', 'Archiverecoverableitemspurges',
+  )
+
+  id = T.DistinguishedFolderId(Id=event.calendar_id) if event.calendar_id in distinguished_ids else T.FolderId(Id=event.calendar_id)
+
   start = convert_datetime_to_utc(event.start)
   end = convert_datetime_to_utc(event.end)
 
   root = M.CreateItem(
-    M.SavedItemFolderId(
-      T.DistinguishedFolderId(Id="calendar")
-    ),
+    M.SavedItemFolderId(id),
     M.Items(
       T.CalendarItem(
         T.Subject(event.subject),

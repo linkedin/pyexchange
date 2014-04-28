@@ -94,3 +94,11 @@ class BaseExchangeFolder(object):
 
   def _reset_dirty_attributes(self):
     self._dirty_attributes = set()
+
+  def validate(self):
+    """ Validates that all required fields are present """
+    if not self.display_name:
+      raise ValueError("Folder has no display_name")
+
+    if not self.parent_id:
+      raise ValueError("Folder has no parent_id")

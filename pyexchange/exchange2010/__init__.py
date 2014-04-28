@@ -22,8 +22,8 @@ log = logging.getLogger("pyexchange")
 
 class Exchange2010Service(ExchangeServiceSOAP):
 
-  def calendar(self):
-    return Exchange2010CalendarService(service=self)
+  def calendar(self, id="calendar"):
+    return Exchange2010CalendarService(service=self, calendar_id=id)
 
   def mail(self):
     raise NotImplementedError("Sorry - nothin' here. Feel like adding it? :)")
@@ -75,7 +75,7 @@ class Exchange2010CalendarService(BaseExchangeCalendarService):
     return Exchange2010CalendarEvent(service=self.service, id=id)
 
   def new_event(self, **properties):
-    return Exchange2010CalendarEvent(service=self.service, **properties)
+    return Exchange2010CalendarEvent(service=self.service, calendar_id=self.calendar_id, **properties)
 
 
 class Exchange2010CalendarEvent(BaseExchangeCalendarEvent):
@@ -360,15 +360,19 @@ class Exchange2010Folder(BaseExchangeFolder):
 
   def create(self):
 
-    # self.validate()
+    self.validate()
     body = soap_request.new_folder(self)
 
     response_xml = self.service.send(body)
+    print etree.tostring(response_xml, pretty_print=True)
     self._id, self._change_key = self._parse_id_and_change_key_from_response(response_xml)
 
     return self
 
   def delete(self):
+    if not self.id:
+      raise TypeError(u"You can't delete a folder that hasn't been created yet.")
+
     body = soap_request.delete_folder(self)
 
     response_xml = self.service.send(body)
