@@ -206,7 +206,7 @@ class Exchange2010CalendarEvent(BaseExchangeCalendarEvent):
 
     self.refresh_change_key()
     response_xml = self.service.send(soap_request.move_event(self, folder_id))  # noqa
-    # TODO - check return to make sure it was successful
+
     self.calendar_id = folder_id
     return self
 
@@ -414,7 +414,7 @@ class Exchange2010Folder(BaseExchangeFolder):
       raise TypeError(u"You can't move a folder that hasn't been created yet.")
 
     response_xml = self.service.send(soap_request.move_folder(self, folder_id))  # noqa
-    # TODO - check return to make sure it was successful
+
     self.parent_id = folder_id
     return self
 
@@ -437,7 +437,7 @@ class Exchange2010Folder(BaseExchangeFolder):
 
   def _parse_id_and_change_key_from_response(self, response):
 
-    id_elements = response.xpath(u't:FolderId', namespaces=soap_request.NAMESPACES)
+    id_elements = response.xpath(u'//t:FolderId', namespaces=soap_request.NAMESPACES)
 
     if id_elements:
       id_element = id_elements[0]
@@ -447,7 +447,7 @@ class Exchange2010Folder(BaseExchangeFolder):
 
   def _parse_parent_id_and_change_key_from_response(self, response):
 
-    id_elements = response.xpath(u't:ParentFolderId', namespaces=soap_request.NAMESPACES)
+    id_elements = response.xpath(u'//t:ParentFolderId', namespaces=soap_request.NAMESPACES)
 
     if id_elements:
       id_element = id_elements[0]

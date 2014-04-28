@@ -130,3 +130,20 @@ class Test_CreatingANewFolder(object):
     self.folder.create()
 
     assert TEST_FOLDER.folder_type in HTTPretty.last_request.body.decode('utf-8')
+
+  @httprettified
+  def test_can_create(self):
+
+    HTTPretty.register_uri(
+      HTTPretty.POST,
+      FAKE_EXCHANGE_URL,
+      body=CREATE_FOLDER_RESPONSE.encode('utf-8'),
+      content_type='text/html; charset=utf-8',
+    )
+
+    self.folder.display_name = TEST_FOLDER.display_name
+    self.folder.parent_id = TEST_FOLDER.parent_id
+    self.folder.folder_type = TEST_FOLDER.folder_type
+    self.folder.create()
+
+    eq_(self.folder.id, TEST_FOLDER.id)

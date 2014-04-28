@@ -476,7 +476,7 @@ CREATE_FOLDER_RESPONSE = u"""<s:Envelope xmlns:s="http://schemas.xmlsoap.org/soa
           <m:ResponseCode>NoError</m:ResponseCode>
           <m:Folders>
             <t:{folder.folder_type}>
-              <t:FolderId Id="KSrHAAA=" ChangeKey="AgAAABYAAADpWt6pa2rUTqiGtJHmvtoIAAAhKSrJ"/>
+              <t:FolderId Id="{folder.id}" ChangeKey="{folder.change_key}"/>
             </t:{folder.folder_type}>
           </m:Folders>
         </m:CreateFolderResponseMessage>

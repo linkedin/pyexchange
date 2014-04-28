@@ -297,7 +297,7 @@ def move_folder(folder, folder_id):
 
   root = M.MoveFolder(
     M.ToFolderId(id),
-    M.ItemIds(
+    M.FolderIds(
         T.FolderId(Id=folder.id)
     )
   )
