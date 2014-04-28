@@ -564,3 +564,30 @@ FIND_FOLDER_RESPONSE = u"""<s:Envelope xmlns:s="http://schemas.xmlsoap.org/soap/
     </m:FindFolderResponse>
   </s:Body>
 </s:Envelope>"""
+
+
+MOVE_EVENT_RESPONSE = u"""<s:Envelope xmlns:s="http://schemas.xmlsoap.org/soap/envelope/">
+  <s:Header>
+    <h:ServerVersionInfo xmlns:h="http://schemas.microsoft.com/exchange/services/2006/types"
+                         xmlns="http://schemas.microsoft.com/exchange/services/2006/types"
+                         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                         xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+                         MajorVersion="14" MinorVersion="3" MajorBuildNumber="181" MinorBuildNumber="6"/>
+  </s:Header>
+  <s:Body xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+          xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+    <m:MoveItemResponse xmlns:m="http://schemas.microsoft.com/exchange/services/2006/messages"
+                        xmlns:t="http://schemas.microsoft.com/exchange/services/2006/types">
+      <m:ResponseMessages>
+        <m:MoveItemResponseMessage ResponseClass="Success">
+          <m:ResponseCode>NoError</m:ResponseCode>
+          <m:Items>
+            <t:CalendarItem>
+              <t:ItemId Id="{event.id}" ChangeKey="{event.change_key}"/>
+            </t:CalendarItem>
+          </m:Items>
+        </m:MoveItemResponseMessage>
+      </m:ResponseMessages>
+    </m:MoveItemResponse>
+  </s:Body>
+</s:Envelope>""".format(event=TEST_EVENT)

@@ -18,6 +18,14 @@ T = ElementMaker(namespace=TYPE_NS, nsmap=NAMESPACES)
 
 EXCHANGE_DATE_FORMAT = u"%Y-%m-%dT%H:%M:%SZ"
 
+DISTINGUISHED_IDS = (
+  'calendar', 'contacts', 'deleteditems', 'drafts', 'inbox', 'journal', 'notes', 'outbox', 'sentitems',
+  'tasks', 'msgfolderroot', 'root', 'junkemail', 'searchfolders', 'voicemail', 'recoverableitemsroot',
+  'recoverableitemsdeletions', 'recoverableitemsversions', 'recoverableitemspurges', 'archiveroot',
+  'archivemsgfolderroot', 'archivedeleteditems', 'archiverecoverableitemsroot',
+  'Archiverecoverableitemsdeletions', 'Archiverecoverableitemsversions', 'Archiverecoverableitemspurges',
+)
+
 
 def exchange_header():
 
@@ -102,15 +110,7 @@ def get_item(exchange_id, format=u"Default"):
 
 def get_folder(folder_id, format=u"Default"):
 
-  distinguished_ids = (
-    'calendar', 'contacts', 'deleteditems', 'drafts', 'inbox', 'journal', 'notes', 'outbox', 'sentitems',
-    'tasks', 'msgfolderroot', 'root', 'junkemail', 'searchfolders', 'voicemail', 'recoverableitemsroot',
-    'recoverableitemsdeletions', 'recoverableitemsversions', 'recoverableitemspurges', 'archiveroot',
-    'archivemsgfolderroot', 'archivedeleteditems', 'archiverecoverableitemsroot',
-    'Archiverecoverableitemsdeletions', 'Archiverecoverableitemsversions', 'Archiverecoverableitemspurges',
-  )
-
-  id = T.DistinguishedFolderId(Id=folder_id) if folder_id in distinguished_ids else T.FolderId(Id=folder_id)
+  id = T.DistinguishedFolderId(Id=folder_id) if folder_id in DISTINGUISHED_IDS else T.FolderId(Id=folder_id)
 
   root = M.GetFolder(
     M.FolderShape(
@@ -123,15 +123,7 @@ def get_folder(folder_id, format=u"Default"):
 
 def new_folder(folder):
 
-  distinguished_ids = (
-    'calendar', 'contacts', 'deleteditems', 'drafts', 'inbox', 'journal', 'notes', 'outbox', 'sentitems',
-    'tasks', 'msgfolderroot', 'root', 'junkemail', 'searchfolders', 'voicemail', 'recoverableitemsroot',
-    'recoverableitemsdeletions', 'recoverableitemsversions', 'recoverableitemspurges', 'archiveroot',
-    'archivemsgfolderroot', 'archivedeleteditems', 'archiverecoverableitemsroot',
-    'Archiverecoverableitemsdeletions', 'Archiverecoverableitemsversions', 'Archiverecoverableitemspurges',
-  )
-
-  id = T.DistinguishedFolderId(Id=folder.parent_id) if folder.parent_id in distinguished_ids else T.FolderId(Id=folder.parent_id)
+  id = T.DistinguishedFolderId(Id=folder.parent_id) if folder.parent_id in DISTINGUISHED_IDS else T.FolderId(Id=folder.parent_id)
 
   if folder.folder_type == u'Folder':
     folder_node = T.Folder(T.DisplayName(folder.display_name))
@@ -147,15 +139,7 @@ def new_folder(folder):
 
 def find_folder(parent_id, format=u"Default"):
 
-  distinguished_ids = (
-    'calendar', 'contacts', 'deleteditems', 'drafts', 'inbox', 'journal', 'notes', 'outbox', 'sentitems',
-    'tasks', 'msgfolderroot', 'root', 'junkemail', 'searchfolders', 'voicemail', 'recoverableitemsroot',
-    'recoverableitemsdeletions', 'recoverableitemsversions', 'recoverableitemspurges', 'archiveroot',
-    'archivemsgfolderroot', 'archivedeleteditems', 'archiverecoverableitemsroot',
-    'Archiverecoverableitemsdeletions', 'Archiverecoverableitemsversions', 'Archiverecoverableitemspurges',
-  )
-
-  id = T.DistinguishedFolderId(Id=parent_id) if parent_id in distinguished_ids else T.FolderId(Id=parent_id)
+  id = T.DistinguishedFolderId(Id=parent_id) if parent_id in DISTINGUISHED_IDS else T.FolderId(Id=parent_id)
 
   root = M.FindFolder(
     {u'Traversal': u'Shallow'},
@@ -231,15 +215,7 @@ def new_event(event):
 </m:CreateItem>
   """
 
-  distinguished_ids = (
-    'calendar', 'contacts', 'deleteditems', 'drafts', 'inbox', 'journal', 'notes', 'outbox', 'sentitems',
-    'tasks', 'msgfolderroot', 'root', 'junkemail', 'searchfolders', 'voicemail', 'recoverableitemsroot',
-    'recoverableitemsdeletions', 'recoverableitemsversions', 'recoverableitemspurges', 'archiveroot',
-    'archivemsgfolderroot', 'archivedeleteditems', 'archiverecoverableitemsroot',
-    'Archiverecoverableitemsdeletions', 'Archiverecoverableitemsversions', 'Archiverecoverableitemspurges',
-  )
-
-  id = T.DistinguishedFolderId(Id=event.calendar_id) if event.calendar_id in distinguished_ids else T.FolderId(Id=event.calendar_id)
+  id = T.DistinguishedFolderId(Id=event.calendar_id) if event.calendar_id in DISTINGUISHED_IDS else T.FolderId(Id=event.calendar_id)
 
   start = convert_datetime_to_utc(event.start)
   end = convert_datetime_to_utc(event.end)
@@ -300,6 +276,32 @@ def delete_event(event):
     )
 
     return root
+
+
+def move_event(event, folder_id):
+
+  id = T.DistinguishedFolderId(Id=folder_id) if folder_id in DISTINGUISHED_IDS else T.FolderId(Id=folder_id)
+
+  root = M.MoveItem(
+    M.ToFolderId(id),
+    M.ItemIds(
+        T.ItemId(Id=event.id, ChangeKey=event.change_key)
+    )
+  )
+  return root
+
+
+def move_folder(folder, folder_id):
+
+  id = T.DistinguishedFolderId(Id=folder_id) if folder_id in DISTINGUISHED_IDS else T.FolderId(Id=folder_id)
+
+  root = M.MoveFolder(
+    M.ToFolderId(id),
+    M.ItemIds(
+        T.FolderId(Id=folder.id)
+    )
+  )
+  return root
 
 
 def update_property_node(node_to_insert, field_uri):

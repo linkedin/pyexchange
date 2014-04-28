@@ -188,6 +188,22 @@ class Exchange2010CalendarEvent(BaseExchangeCalendarEvent):
     # TODO rsanders high - check return status to make sure it was actually sent
     return None
 
+  def move_to(self, folder_id):
+    if not folder_id:
+      raise TypeError(u"You can't move an event to a non-existant folder")
+
+    if not isinstance(folder_id, basestring):
+      raise TypeError(u"folder_id must be a string")
+      
+    if not self.id:
+      raise TypeError(u"You can't move an event that hasn't been created yet.")
+
+    self.refresh_change_key()
+    response_xml = self.service.send(soap_request.move_event(self, folder_id))
+    # TODO - check return to make sure it was successful
+    self.calendar_id = folder_id
+    return self
+
   def refresh_change_key(self):
 
     body = soap_request.get_item(exchange_id=self._id, format=u"IdOnly")
@@ -379,6 +395,21 @@ class Exchange2010Folder(BaseExchangeFolder):
     self._change_key = None
 
     return None
+
+  def move_to(self, folder_id):
+    if not folder_id:
+      raise TypeError(u"You can't move to a non-existant folder")
+
+    if not isinstance(folder_id, basestring):
+      raise TypeError(u"folder_id must be a string")
+      
+    if not self.id:
+      raise TypeError(u"You can't move a folder that hasn't been created yet.")
+
+    response_xml = self.service.send(soap_request.move_folder(self, folder_id))
+    # TODO - check return to make sure it was successful
+    self.parent_id = folder_id
+    return self
 
   def _parse_response_for_get_folder(self, response):
 
