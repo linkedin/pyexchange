@@ -484,3 +484,25 @@ CREATE_FOLDER_RESPONSE = u"""<s:Envelope xmlns:s="http://schemas.xmlsoap.org/soa
     </m:CreateFolderResponse>
   </s:Body>
 </s:Envelope>""".format(folder=TEST_FOLDER)
+
+
+DELETE_FOLDER_RESPONSE = u"""<?xml version="1.0" encoding="utf-8" ?>
+<soap:Envelope xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/" 
+               xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+               xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+  <soap:Header>
+    <t:ServerVersionInfo MajorVersion="8" MinorVersion="0" MajorBuildNumber="595" MinorBuildNumber="0" 
+                         xmlns:t="http://schemas.microsoft.com/exchange/services/2006/types" />
+  </soap:Header>
+  <soap:Body>
+    <DeleteFolderResponse xmlns:m="http://schemas.microsoft.com/exchange/services/2006/messages" 
+                          xmlns:t="http://schemas.microsoft.com/exchange/services/2006/types" 
+                          xmlns="http://schemas.microsoft.com/exchange/services/2006/messages">
+      <m:ResponseMessages>
+        <m:DeleteFolderResponseMessage ResponseClass="Success">
+          <m:ResponseCode>NoError</m:ResponseCode>
+        </m:DeleteFolderResponseMessage>
+      </m:ResponseMessages>
+    </DeleteFolderResponse>
+  </soap:Body>
+</soap:Envelope>"""
