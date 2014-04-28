@@ -78,7 +78,7 @@ class Test_FailingToGetFolders():
 
     httpretty.register_uri(
       httpretty.POST, FAKE_EXCHANGE_URL,
-      body=ITEM_DOES_NOT_EXIST.encode('utf-8'),
+      body=FOLDER_DOES_NOT_EXIST.encode('utf-8'),
       content_type='text/xml; charset=utf-8',
     )
 
