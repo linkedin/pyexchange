@@ -200,12 +200,12 @@ class Exchange2010CalendarEvent(BaseExchangeCalendarEvent):
 
     if not isinstance(folder_id, basestring):
       raise TypeError(u"folder_id must be a string")
-      
+
     if not self.id:
       raise TypeError(u"You can't move an event that hasn't been created yet.")
 
     self.refresh_change_key()
-    response_xml = self.service.send(soap_request.move_event(self, folder_id))
+    response_xml = self.service.send(soap_request.move_event(self, folder_id))  # noqa
     # TODO - check return to make sure it was successful
     self.calendar_id = folder_id
     return self
@@ -396,7 +396,8 @@ class Exchange2010Folder(BaseExchangeFolder):
 
     body = soap_request.delete_folder(self)
 
-    response_xml = self.service.send(body)
+    response_xml = self.service.send(body)  # noqa
+    # TODO: verify deletion
     self._id = None
     self._change_key = None
 
@@ -408,11 +409,11 @@ class Exchange2010Folder(BaseExchangeFolder):
 
     if not isinstance(folder_id, basestring):
       raise TypeError(u"folder_id must be a string")
-      
+
     if not self.id:
       raise TypeError(u"You can't move a folder that hasn't been created yet.")
 
-    response_xml = self.service.send(soap_request.move_folder(self, folder_id))
+    response_xml = self.service.send(soap_request.move_folder(self, folder_id))  # noqa
     # TODO - check return to make sure it was successful
     self.parent_id = folder_id
     return self
