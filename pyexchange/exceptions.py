@@ -27,3 +27,14 @@ class ExchangeItemNotFoundException(FailedExchangeException):
   Raised when an item is not found on the Exchange server
   """
   pass
+
+
+class ExchangeIrresolvableConflictException(FailedExchangeException):
+  """Raised when attempting to update an item that has changed since the the current change key was obtained."""
+  pass
+
+
+class ExchangeInternalServerTransientErrorException(FailedExchangeException):
+  """Raised when an internal server error occurs in Exchange and the request can actually be retried."""
+  pass
+
