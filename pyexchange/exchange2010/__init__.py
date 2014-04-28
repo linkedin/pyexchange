@@ -379,7 +379,7 @@ class Exchange2010Folder(BaseExchangeFolder):
     self._id = None
     self._change_key = None
 
-    return self
+    return None
 
   def _parse_response_for_get_folder(self, response):
 
