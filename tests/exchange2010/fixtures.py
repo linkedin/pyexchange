@@ -591,3 +591,30 @@ MOVE_EVENT_RESPONSE = u"""<s:Envelope xmlns:s="http://schemas.xmlsoap.org/soap/e
     </m:MoveItemResponse>
   </s:Body>
 </s:Envelope>""".format(event=TEST_EVENT)
+
+
+MOVE_FOLDER_RESPONSE = u"""<?xml version="1.0" encoding="utf-8" ?>
+<soap:Envelope xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/"
+               xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+               xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+  <soap:Header>
+    <t:ServerVersionInfo MajorVersion="8" MinorVersion="0" MajorBuildNumber="685" MinorBuildNumber="8"
+                         xmlns:t="http://schemas.microsoft.com/exchange/services/2006/types" />
+  </soap:Header>
+  <soap:Body>
+    <MoveFolderResponse xmlns:m="http://schemas.microsoft.com/exchange/services/2006/messages"
+                        xmlns:t="http://schemas.microsoft.com/exchange/services/2006/types"
+                        xmlns="http://schemas.microsoft.com/exchange/services/2006/messages">
+      <m:ResponseMessages>
+        <m:MoveFolderResponseMessage ResponseClass="Success">
+          <m:ResponseCode>NoError</m:ResponseCode>
+          <m:Folders>
+            <t:Folder>
+              <t:FolderId Id="{folder.id}" ChangeKey="folder.change_key" />
+            </t:Folder>
+          </m:Folders>
+        </m:MoveFolderResponseMessage>
+      </m:ResponseMessages>
+    </MoveFolderResponse>
+  </soap:Body>
+</soap:Envelope>""".format(folder=TEST_FOLDER)

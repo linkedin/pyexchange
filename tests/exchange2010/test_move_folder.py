@@ -55,7 +55,7 @@ class Test_MovingAFolder(object):
     HTTPretty.register_uri(
       HTTPretty.POST,
       FAKE_EXCHANGE_URL,
-      body=MOVE_EVENT_RESPONSE.encode('utf-8'),
+      body=MOVE_FOLDER_RESPONSE.encode('utf-8'),
       content_type='text/xml; charset=utf-8'
     )
 
