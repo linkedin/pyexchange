@@ -15,7 +15,7 @@ from .fixtures import *
 
 
 class Test_PopulatingANewFolder():
-  """ Tests all the attribute setting works when creating a new event """
+  """ Tests all the attribute setting works when creating a new folder """
   folder = None
 
   @classmethod
@@ -73,7 +73,7 @@ class Test_CreatingANewFolder(object):
     self.folder.create()
 
   @raises(ValueError)
-  def test_events_must_have_a_parent_id(self):
+  def test_folders_must_have_a_parent_id(self):
     self.folder.display_name = u'Conference Room'
     self.parent_id = None
     self.folder.create()
