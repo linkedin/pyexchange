@@ -487,16 +487,16 @@ CREATE_FOLDER_RESPONSE = u"""<s:Envelope xmlns:s="http://schemas.xmlsoap.org/soa
 
 
 DELETE_FOLDER_RESPONSE = u"""<?xml version="1.0" encoding="utf-8" ?>
-<soap:Envelope xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/" 
-               xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+<soap:Envelope xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/"
+               xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
                xmlns:xsd="http://www.w3.org/2001/XMLSchema">
   <soap:Header>
-    <t:ServerVersionInfo MajorVersion="8" MinorVersion="0" MajorBuildNumber="595" MinorBuildNumber="0" 
+    <t:ServerVersionInfo MajorVersion="8" MinorVersion="0" MajorBuildNumber="595" MinorBuildNumber="0"
                          xmlns:t="http://schemas.microsoft.com/exchange/services/2006/types" />
   </soap:Header>
   <soap:Body>
-    <DeleteFolderResponse xmlns:m="http://schemas.microsoft.com/exchange/services/2006/messages" 
-                          xmlns:t="http://schemas.microsoft.com/exchange/services/2006/types" 
+    <DeleteFolderResponse xmlns:m="http://schemas.microsoft.com/exchange/services/2006/messages"
+                          xmlns:t="http://schemas.microsoft.com/exchange/services/2006/types"
                           xmlns="http://schemas.microsoft.com/exchange/services/2006/messages">
       <m:ResponseMessages>
         <m:DeleteFolderResponseMessage ResponseClass="Success">
@@ -506,3 +506,61 @@ DELETE_FOLDER_RESPONSE = u"""<?xml version="1.0" encoding="utf-8" ?>
     </DeleteFolderResponse>
   </soap:Body>
 </soap:Envelope>"""
+
+
+FIND_FOLDER_RESPONSE = u"""<s:Envelope xmlns:s="http://schemas.xmlsoap.org/soap/envelope/">
+  <s:Header>
+    <h:ServerVersionInfo xmlns:h="http://schemas.microsoft.com/exchange/services/2006/types"
+                         xmlns="http://schemas.microsoft.com/exchange/services/2006/types"
+                         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                         xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+                         MajorVersion="14" MinorVersion="3" MajorBuildNumber="181" MinorBuildNumber="6"/>
+  </s:Header>
+  <s:Body xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+          xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+    <m:FindFolderResponse xmlns:m="http://schemas.microsoft.com/exchange/services/2006/messages"
+                          xmlns:t="http://schemas.microsoft.com/exchange/services/2006/types">
+      <m:ResponseMessages>
+        <m:FindFolderResponseMessage ResponseClass="Success">
+          <m:ResponseCode>NoError</m:ResponseCode>
+          <m:RootFolder TotalItemsInView="4" IncludesLastItemInRange="true">
+            <t:Folders>
+              <t:Folder>
+                <t:FolderId Id="AAhKNOZAAA=" ChangeKey="AhKNOb"/>
+                <t:ParentFolderId Id="AABBCCDDEEFF" ChangeKey="AQAAAA=="/>
+                <t:DisplayName>classrooms</t:DisplayName>
+                <t:TotalCount>0</t:TotalCount>
+                <t:ChildFolderCount>1</t:ChildFolderCount>
+                <t:UnreadCount>0</t:UnreadCount>
+              </t:Folder>
+              <t:CalendarFolder>
+                <t:FolderId Id="AhKSe7AAA=" ChangeKey="uAhKSe9"/>
+                <t:ParentFolderId Id="AABBCCDDEEFF" ChangeKey="AQAAAA=="/>
+                <t:FolderClass>IPF.Appointment</t:FolderClass>
+                <t:DisplayName>conference</t:DisplayName>
+                <t:TotalCount>0</t:TotalCount>
+                <t:ChildFolderCount>0</t:ChildFolderCount>
+              </t:CalendarFolder>
+              <t:CalendarFolder>
+                <t:FolderId Id="AAhKSrHAAA=" ChangeKey="AhKSrJ"/>
+                <t:ParentFolderId Id="AABBCCDDEEFF" ChangeKey="AQAAAA=="/>
+                <t:FolderClass>IPF.Appointment</t:FolderClass>
+                <t:DisplayName>conference0</t:DisplayName>
+                <t:TotalCount>0</t:TotalCount>
+                <t:ChildFolderCount>0</t:ChildFolderCount>
+              </t:CalendarFolder>
+              <t:CalendarFolder>
+                <t:FolderId Id="AAhKSw+AAA=" ChangeKey="AhKSxA"/>
+                <t:ParentFolderId Id="AABBCCDDEEFF" ChangeKey="AQAAAA=="/>
+                <t:FolderClass>IPF.Appointment</t:FolderClass>
+                <t:DisplayName>conference1</t:DisplayName>
+                <t:TotalCount>0</t:TotalCount>
+                <t:ChildFolderCount>0</t:ChildFolderCount>
+              </t:CalendarFolder>
+            </t:Folders>
+          </m:RootFolder>
+        </m:FindFolderResponseMessage>
+      </m:ResponseMessages>
+    </m:FindFolderResponse>
+  </s:Body>
+</s:Envelope>"""
