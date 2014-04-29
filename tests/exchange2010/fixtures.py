@@ -40,6 +40,14 @@ TEST_EVENT_UPDATED = EventFixture(id=u'AABBCCDDEEFF',
                                   end=datetime(year=2060, month=4, day=19, hour=20, minute=42, second=50),
                                   body=u'śő śhíńý śő véŕý śhíńý')
 
+TEST_EVENT_MOVED = EventFixture(id=u'AABBCCDDEEFFAABBCCDDEEFF',
+                          change_key=u'GGHHIIJJKKLLMMGGHHIIJJKKLLMM',
+                          subject=u'нyвrιd ѕolαr eclιpѕe',
+                          location=u'söüth päċïfïċ (40.1°S 123.7°W)',
+                          start=datetime(year=2050, month=5, day=20, hour=20, minute=42, second=50),
+                          end=datetime(year=2050, month=5, day=20, hour=21, minute=43, second=51),
+                          body=u'rärr ï äm ä dïnösäür')
+
 NOW = datetime.utcnow().replace(microsecond=0)  # If you don't remove microseconds, it screws with datetime comparisions :/
 
 ORGANIZER = ExchangeEventOrganizer(name=u'émmý ńőéthéŕ', email=u'noether@test.linkedin.com')
@@ -590,7 +598,7 @@ MOVE_EVENT_RESPONSE = u"""<s:Envelope xmlns:s="http://schemas.xmlsoap.org/soap/e
       </m:ResponseMessages>
     </m:MoveItemResponse>
   </s:Body>
-</s:Envelope>""".format(event=TEST_EVENT)
+</s:Envelope>""".format(event=TEST_EVENT_MOVED)
 
 
 MOVE_FOLDER_RESPONSE = u"""<?xml version="1.0" encoding="utf-8" ?>

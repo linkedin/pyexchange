@@ -59,3 +59,4 @@ class Test_MovingAnEvent(object):
 
     self.event.move_to('AAAhKSe7AAA=')
     eq_(self.event.calendar_id, 'AAAhKSe7AAA=')
+    eq_(self.event.id, TEST_EVENT_MOVED.id)
