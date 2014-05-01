@@ -288,7 +288,7 @@ class BaseExchangeCalendarEvent(object):
       raise TypeError("reminder_minutes_before_start must be of type int")
 
     if self.is_all_day and not isinstance(self.is_all_day, bool):
-      raise TypeError("is_all_day must be of type int")
+      raise TypeError("is_all_day must be of type bool")
 
   def create(self):
     raise NotImplementedError
