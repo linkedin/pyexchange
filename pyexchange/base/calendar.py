@@ -56,6 +56,8 @@ class BaseExchangeCalendarEvent(object):
   text_body = None
   attachments = None
   organizer = None
+  reminder_minutes_before_start = None
+  is_all_day = None
 
   _attendees = {}  # people attending
   _resources = {}  # conference rooms attending
@@ -64,7 +66,8 @@ class BaseExchangeCalendarEvent(object):
   _dirty_attributes = set()  # any attributes that have changed, and we need to update in Exchange
 
   # these attributes can be pickled, or output as JSON
-  DATA_ATTRIBUTES = [u'_id', u'subject', u'start', u'end', u'location', u'html_body', u'text_body', u'organizer', u'_attendees', u'_resources']
+  DATA_ATTRIBUTES = [u'_id', u'subject', u'start', u'end', u'location', u'html_body', u'text_body', u'organizer',
+                     u'_attendees', u'_resources', u'reminder_minutes_before_start', u'is_all_day']
 
   def __init__(self, service, id=None, calendar_id=u'calendar', **kwargs):
     self.service = service
@@ -280,6 +283,12 @@ class BaseExchangeCalendarEvent(object):
 
     if self.end < self.start:
       raise ValueError("End date is after start date")
+
+    if self.reminder_minutes_before_start and not isinstance(self.reminder_minutes_before_start, int):
+      raise TypeError("reminder_minutes_before_start must be of type int")
+
+    if self.is_all_day and not isinstance(self.is_all_day, bool):
+      raise TypeError("is_all_day must be of type int")
 
   def create(self):
     raise NotImplementedError

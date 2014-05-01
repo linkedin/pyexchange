@@ -226,15 +226,26 @@ def new_event(event):
       T.CalendarItem(
         T.Subject(event.subject),
         T.Body(event.body or u'', BodyType="HTML"),
-        T.Start(start.strftime(EXCHANGE_DATE_FORMAT)),
-        T.End(end.strftime(EXCHANGE_DATE_FORMAT)),
-        T.Location(event.location or u''),
       )
     ),
     SendMeetingInvitations="SendToAllAndSaveCopy"
   )
 
   calendar_node = root.xpath(u'/m:CreateItem/m:Items/t:CalendarItem', namespaces=NAMESPACES)[0]
+
+  if event.reminder_minutes_before_start:
+    calendar_node.append(T.ReminderIsSet('true'))
+    calendar_node.append(T.ReminderMinutesBeforeStart(str(event.reminder_minutes_before_start)))
+  else:
+    calendar_node.append(T.ReminderIsSet('false'))
+
+  calendar_node.append(T.Start(start.strftime(EXCHANGE_DATE_FORMAT)))
+  calendar_node.append(T.End(end.strftime(EXCHANGE_DATE_FORMAT)))
+
+  if event.is_all_day:
+    calendar_node.append(T.IsAllDayEvent('true'))
+
+  calendar_node.append(T.Location(event.location or u''))
 
   if event.required_attendees:
     calendar_node.append(resource_node(element=T.RequiredAttendees(), resources=event.required_attendees))
