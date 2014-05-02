@@ -17,6 +17,8 @@ from . import soap_request
 
 from lxml import etree
 
+import warnings
+
 log = logging.getLogger("pyexchange")
 
 
@@ -142,12 +144,12 @@ class Exchange2010CalendarEvent(BaseExchangeCalendarEvent):
       raise ValueError(u"There are unsaved changes to this invite - please update it first: %r" % self._dirty_attributes)
 
     self.refresh_change_key()
-    body = soap_request.update_item(self, [], send_only_to_changed_attendees=False)
+    body = soap_request.update_item(self, [], calendar_item_update_operation_type=u'SendOnlyToAll')
     self.service.send(body)
 
     return self
 
-  def update(self, send_only_to_changed_attendees=False):
+  def update(self, calendar_item_update_operation_type=u'SendToAllAndSaveCopy', **kwargs):
     """
     Updates an event in Exchange.  ::
 
@@ -163,13 +165,28 @@ class Exchange2010CalendarEvent(BaseExchangeCalendarEvent):
     if not self.id:
       raise TypeError(u"You can't update an event that hasn't been created yet.")
 
+    if 'send_only_to_changed_attendees' in kwargs:
+      warnings.warn(
+        "The argument send_only_to_changed_attendees is deprecated.  Use calendar_item_update_operation_type instead.",
+        DeprecationWarning,
+      )  # 20140502
+      if kwargs['send_only_to_changed_attendees']:
+        calendar_item_update_operation_type = u'SendToChangedAndSaveCopy'
+
+    VALID_UPDATE_OPERATION_TYPES = (
+      u'SendToNone', u'SendOnlyToAll', u'SendOnlyToChanged',
+      u'SendToAllAndSaveCopy', u'SendToChangedAndSaveCopy',
+    )
+    if calendar_item_update_operation_type not in VALID_UPDATE_OPERATION_TYPES:
+      raise ValueError('calendar_item_update_operation_type has unknown value')
+
     self.validate()
 
     if self._dirty_attributes:
       log.debug(u"Updating these attributes: %r" % self._dirty_attributes)
       self.refresh_change_key()
 
-      body = soap_request.update_item(self, self._dirty_attributes, send_only_to_changed_attendees=send_only_to_changed_attendees)
+      body = soap_request.update_item(self, self._dirty_attributes, calendar_item_update_operation_type=calendar_item_update_operation_type)
       self.service.send(body)
       self._reset_dirty_attributes()
     else:

@@ -324,10 +324,8 @@ def update_property_node(node_to_insert, field_uri):
   return root
 
 
-def update_item(event, updated_attributes, send_only_to_changed_attendees=False):
+def update_item(event, updated_attributes, calendar_item_update_operation_type):
   """ Saves updates to an event in the store. Only request changes for attributes that have actually changed."""
-
-  SEND_MEETING_INVITES = u"SendToChangedAndSaveCopy" if send_only_to_changed_attendees else u"SendToAllAndSaveCopy"
 
   root = M.UpdateItem(
     M.ItemChanges(
@@ -338,17 +336,17 @@ def update_item(event, updated_attributes, send_only_to_changed_attendees=False)
     ),
     ConflictResolution=u"AlwaysOverwrite",
     MessageDisposition=u"SendAndSaveCopy",
-    SendMeetingInvitationsOrCancellations=SEND_MEETING_INVITES
+    SendMeetingInvitationsOrCancellations=calendar_item_update_operation_type
   )
 
   update_node = root.xpath(u'/m:UpdateItem/m:ItemChanges/t:ItemChange/t:Updates', namespaces=NAMESPACES)[0]
 
-  if not send_only_to_changed_attendees:
-    # We want to resend invites, which you do by setting an attribute to the same value it has. Right now, events
-    # are always scheduled as Busy time, so we just set that again.
-    update_node.append(
-      update_property_node(field_uri="calendar:LegacyFreeBusyStatus", node_to_insert=T.LegacyFreeBusyStatus("Busy"))
-    )
+  # if not send_only_to_changed_attendees:
+  #   # We want to resend invites, which you do by setting an attribute to the same value it has. Right now, events
+  #   # are always scheduled as Busy time, so we just set that again.
+  #   update_node.append(
+  #     update_property_node(field_uri="calendar:LegacyFreeBusyStatus", node_to_insert=T.LegacyFreeBusyStatus("Busy"))
+  #   )
 
   if u'html_body' in updated_attributes:
     update_node.append(

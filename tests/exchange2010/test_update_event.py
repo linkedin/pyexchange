@@ -330,7 +330,6 @@ class Test_UpdatingAnEvent(object):
 
     self.event.resources = [UPDATED_RESOURCE.email]
     self.event.update()
-
     assert u"SendToAllAndSaveCopy" in HTTPretty.last_request.body.decode('utf-8')
 
   @httprettified
@@ -347,3 +346,93 @@ class Test_UpdatingAnEvent(object):
     self.event.update(send_only_to_changed_attendees=True)
 
     assert u"SendToChangedAndSaveCopy" in HTTPretty.last_request.body.decode('utf-8')
+
+  @httprettified
+  def test_changes_are_sent_to_nobody(self):
+
+    HTTPretty.register_uri(HTTPretty.POST, FAKE_EXCHANGE_URL,
+                           responses=[
+                               self.get_change_key_response,
+                               self.update_event_response,
+                            ])
+
+
+    self.event.resources = [UPDATED_RESOURCE.email]
+    self.event.update(calendar_item_update_operation_type='SendToNone')
+
+    assert u"SendToNone" in HTTPretty.last_request.body.decode('utf-8')
+
+  @httprettified
+  def test_changes_are_sent_only_to_all(self):
+
+    HTTPretty.register_uri(HTTPretty.POST, FAKE_EXCHANGE_URL,
+                           responses=[
+                               self.get_change_key_response,
+                               self.update_event_response,
+                            ])
+
+
+    self.event.resources = [UPDATED_RESOURCE.email]
+    self.event.update(calendar_item_update_operation_type='SendOnlyToAll')
+
+    assert u"SendOnlyToAll" in HTTPretty.last_request.body.decode('utf-8')
+
+  @httprettified
+  def test_changes_are_sent_only_to_changed(self):
+
+    HTTPretty.register_uri(HTTPretty.POST, FAKE_EXCHANGE_URL,
+                           responses=[
+                               self.get_change_key_response,
+                               self.update_event_response,
+                            ])
+
+
+    self.event.resources = [UPDATED_RESOURCE.email]
+    self.event.update(calendar_item_update_operation_type='SendOnlyToChanged')
+
+    assert u"SendOnlyToChanged" in HTTPretty.last_request.body.decode('utf-8')
+
+  @httprettified
+  def test_changes_are_sent_to_all_and_save_copy(self):
+
+    HTTPretty.register_uri(HTTPretty.POST, FAKE_EXCHANGE_URL,
+                           responses=[
+                               self.get_change_key_response,
+                               self.update_event_response,
+                            ])
+
+
+    self.event.resources = [UPDATED_RESOURCE.email]
+    self.event.update(calendar_item_update_operation_type='SendToAllAndSaveCopy')
+
+    assert u"SendToAllAndSaveCopy" in HTTPretty.last_request.body.decode('utf-8')
+
+  @httprettified
+  def test_changes_are_sent_to_changed_and_save_copy(self):
+
+    HTTPretty.register_uri(HTTPretty.POST, FAKE_EXCHANGE_URL,
+                           responses=[
+                               self.get_change_key_response,
+                               self.update_event_response,
+                            ])
+
+
+    self.event.resources = [UPDATED_RESOURCE.email]
+    self.event.update(calendar_item_update_operation_type='SendToChangedAndSaveCopy')
+
+    assert u"SendToChangedAndSaveCopy" in HTTPretty.last_request.body.decode('utf-8')
+
+  @raises(ValueError)
+  def test_wrong_update_operation(self):
+
+    HTTPretty.register_uri(HTTPretty.POST, FAKE_EXCHANGE_URL,
+                           responses=[
+                               self.get_change_key_response,
+                               self.update_event_response,
+                            ])
+
+
+    self.event.resources = [UPDATED_RESOURCE.email]
+    self.event.update(calendar_item_update_operation_type='SendToTheWholeWorld')
+
+    assert u"SendToTheWholeWorld" in HTTPretty.last_request.body.decode('utf-8')
