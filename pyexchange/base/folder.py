@@ -24,7 +24,7 @@ class BaseExchangeFolder(object):
   _track_dirty_attributes = False
   _dirty_attributes = set()  # any attributes that have changed, and we need to update in Exchange
 
-  FOLDER_TYPES = (u'Folder', u'CalendarFolder',)  # Need to add all types here
+  FOLDER_TYPES = (u'Folder', u'CalendarFolder', u'ContactsFolder', u'SearchFolder', u'TasksFolder')
 
   def __init__(self, service, id=None, xml=None, **kwargs):
     self.service = service

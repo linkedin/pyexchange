@@ -428,8 +428,9 @@ class Exchange2010Folder(BaseExchangeFolder):
     return self
 
   def _parse_response_for_get_folder(self, response):
+    FOLDER_PATH = u'//t:Folder | //t:CalendarFolder | //t:ContactsFolder | //t:SearchFolder | //t:TasksFolder'
 
-    path = response.xpath(u'//t:Folder | //t:CalendarFolder', namespaces=soap_request.NAMESPACES)[0]
+    path = response.xpath(FOLDER_PATH, namespaces=soap_request.NAMESPACES)[0]
     result = self._parse_folder_properties(path)
     return result
 
@@ -441,6 +442,7 @@ class Exchange2010Folder(BaseExchangeFolder):
 
     self._id, self._change_key = self._parse_id_and_change_key_from_response(response)
     self._parent_id = self._parse_parent_id_and_change_key_from_response(response)[0]
+    self.folder_type = etree.QName(response).localname
 
     return self.service._xpath_to_dict(element=response, property_map=property_map, namespace_map=soap_request.NAMESPACES)
 
