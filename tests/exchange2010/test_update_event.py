@@ -10,7 +10,8 @@ from pyexchange import Exchange2010Service
 
 from pyexchange.connection import ExchangeNTLMAuthConnection
 
-from .fixtures import *
+from .fixtures import *  # noqa
+
 
 class Test_UpdatingAnEvent(object):
   service = None
@@ -18,19 +19,21 @@ class Test_UpdatingAnEvent(object):
 
   @classmethod
   def setUpAll(cls):
-    cls.service =  Exchange2010Service(connection=ExchangeNTLMAuthConnection(url=FAKE_EXCHANGE_URL, username=FAKE_EXCHANGE_USERNAME, password=FAKE_EXCHANGE_PASSWORD))
+    cls.service = Exchange2010Service(connection=ExchangeNTLMAuthConnection(url=FAKE_EXCHANGE_URL, username=FAKE_EXCHANGE_USERNAME, password=FAKE_EXCHANGE_PASSWORD))
     cls.get_change_key_response = HTTPretty.Response(body=GET_ITEM_RESPONSE_ID_ONLY.encode('utf-8'), status=200, content_type='text/xml; charset=utf-8')
-    cls.update_event_response   = HTTPretty.Response(body=UPDATE_ITEM_RESPONSE.encode('utf-8'), status=200, content_type='text/xml; charset=utf-8')
+    cls.update_event_response = HTTPretty.Response(body=UPDATE_ITEM_RESPONSE.encode('utf-8'), status=200, content_type='text/xml; charset=utf-8')
 
   @httprettified
   def setUp(self):
 
-    HTTPretty.register_uri(HTTPretty.POST, FAKE_EXCHANGE_URL,
-                                 body=GET_ITEM_RESPONSE.encode('utf-8'),
-                                 content_type='text/xml; charset=utf-8')
+    HTTPretty.register_uri(
+      HTTPretty.POST,
+      FAKE_EXCHANGE_URL,
+      body=GET_ITEM_RESPONSE.encode('utf-8'),
+      content_type='text/xml; charset=utf-8'
+    )
 
     self.event = self.service.calendar().get_event(id=TEST_EVENT.id)
-
 
   @raises(ValueError)
   def test_events_must_have_a_start_date(self):
@@ -59,7 +62,7 @@ class Test_UpdatingAnEvent(object):
     self.event.subject = TEST_EVENT_UPDATED.subject
     self.event.update()
 
-    assert TEST_EVENT_UPDATED.subject  in HTTPretty.last_request.body.decode('utf-8')
+    assert TEST_EVENT_UPDATED.subject in HTTPretty.last_request.body.decode('utf-8')
 
   @httprettified
   def test_can_set_location(self):
@@ -69,7 +72,6 @@ class Test_UpdatingAnEvent(object):
                                self.get_change_key_response,
                                self.update_event_response,
                             ])
-
 
     self.event.location = TEST_EVENT_UPDATED.location
     self.event.update()
@@ -99,7 +101,6 @@ class Test_UpdatingAnEvent(object):
                                self.update_event_response,
                             ])
 
-
     self.event.text_body = TEST_EVENT_UPDATED.body
     self.event.update()
 
@@ -113,7 +114,6 @@ class Test_UpdatingAnEvent(object):
                                self.get_change_key_response,
                                self.update_event_response,
                             ])
-
 
     self.event.start = TEST_EVENT_UPDATED.start
     self.event.update()
@@ -188,7 +188,7 @@ class Test_UpdatingAnEvent(object):
 
   @raises(ValueError)
   def test_attendees_must_have_an_email_address(self):
-    self.event.attendees = [PERSON_REQUIRED_ACCEPTED.email, None] # list of email addresses
+    self.event.attendees = [PERSON_REQUIRED_ACCEPTED.email, None]  # list of email addresses
 
   @raises(ValueError)
   def test_attendee_objects_must_have_an_email_address(self):
@@ -196,12 +196,11 @@ class Test_UpdatingAnEvent(object):
 
   def test_can_add_attendees_by_email_address(self):
     attendee_count = len(self.event.attendees)
-    self.event.add_attendees([SIR_NOT_APPEARING_IN_THIS_FILM.email, SIR_ROBIN.email ])
+    self.event.add_attendees([SIR_NOT_APPEARING_IN_THIS_FILM.email, SIR_ROBIN.email])
 
     assert len(self.event.attendees) == attendee_count + 2
     assert SIR_NOT_APPEARING_IN_THIS_FILM.email in [attendee.email for attendee in self.event.attendees]
     assert SIR_ROBIN.email in [attendee.email for attendee in self.event.attendees]
-
 
   def test_can_add_attendees_by_object(self):
     attendee_count = len(self.event.attendees)
@@ -236,28 +235,31 @@ class Test_UpdatingAnEvent(object):
 
   @httprettified
   def test_can_remove_all_attendees(self):
-    HTTPretty.register_uri(HTTPretty.POST, FAKE_EXCHANGE_URL,
-                         responses=[
-                             self.get_change_key_response,
-                             self.update_event_response,
-                          ])
-
+    HTTPretty.register_uri(
+      HTTPretty.POST,
+      FAKE_EXCHANGE_URL,
+      responses=[
+        self.get_change_key_response,
+        self.update_event_response,
+      ]
+    )
 
     self.event.attendees = None
     self.event.update()
 
     assert RESOURCE.email not in HTTPretty.last_request.body.decode('utf-8')
 
-
   @httprettified
   def test_can_change_resources(self):
 
-    HTTPretty.register_uri(HTTPretty.POST, FAKE_EXCHANGE_URL,
-                           responses=[
-                               self.get_change_key_response,
-                               self.update_event_response,
-                            ])
-
+    HTTPretty.register_uri(
+      HTTPretty.POST,
+      FAKE_EXCHANGE_URL,
+      responses=[
+        self.get_change_key_response,
+        self.update_event_response,
+      ]
+    )
 
     self.event.resources = [UPDATED_RESOURCE.email]
     self.event.update()
@@ -266,12 +268,14 @@ class Test_UpdatingAnEvent(object):
 
   @httprettified
   def test_can_remove_all_resources(self):
-    HTTPretty.register_uri(HTTPretty.POST, FAKE_EXCHANGE_URL,
-                         responses=[
-                             self.get_change_key_response,
-                             self.update_event_response,
-                          ])
-
+    HTTPretty.register_uri(
+      HTTPretty.POST,
+      FAKE_EXCHANGE_URL,
+      responses=[
+        self.get_change_key_response,
+        self.update_event_response,
+      ]
+    )
 
     self.event.resources = None
     self.event.update()
@@ -313,7 +317,6 @@ class Test_UpdatingAnEvent(object):
   def test_resources_must_have_an_email_address(self):
     self.event.resources = [RESOURCE.email, None]
 
-
   @raises(ValueError)
   def test_resource_objects_must_have_an_email_address(self):
     self.event.resources = [RESOURCE_WITH_NO_EMAIL_ADDRESS]
@@ -327,7 +330,6 @@ class Test_UpdatingAnEvent(object):
                                self.update_event_response,
                             ])
 
-
     self.event.resources = [UPDATED_RESOURCE.email]
     self.event.update()
     assert u"SendToAllAndSaveCopy" in HTTPretty.last_request.body.decode('utf-8')
@@ -340,7 +342,6 @@ class Test_UpdatingAnEvent(object):
                                self.get_change_key_response,
                                self.update_event_response,
                             ])
-
 
     self.event.resources = [UPDATED_RESOURCE.email]
     self.event.update(send_only_to_changed_attendees=True)
@@ -356,7 +357,6 @@ class Test_UpdatingAnEvent(object):
                                self.update_event_response,
                             ])
 
-
     self.event.resources = [UPDATED_RESOURCE.email]
     self.event.update(calendar_item_update_operation_type='SendToNone')
 
@@ -370,7 +370,6 @@ class Test_UpdatingAnEvent(object):
                                self.get_change_key_response,
                                self.update_event_response,
                             ])
-
 
     self.event.resources = [UPDATED_RESOURCE.email]
     self.event.update(calendar_item_update_operation_type='SendOnlyToAll')
@@ -386,7 +385,6 @@ class Test_UpdatingAnEvent(object):
                                self.update_event_response,
                             ])
 
-
     self.event.resources = [UPDATED_RESOURCE.email]
     self.event.update(calendar_item_update_operation_type='SendOnlyToChanged')
 
@@ -400,7 +398,6 @@ class Test_UpdatingAnEvent(object):
                                self.get_change_key_response,
                                self.update_event_response,
                             ])
-
 
     self.event.resources = [UPDATED_RESOURCE.email]
     self.event.update(calendar_item_update_operation_type='SendToAllAndSaveCopy')
@@ -416,7 +413,6 @@ class Test_UpdatingAnEvent(object):
                                self.update_event_response,
                             ])
 
-
     self.event.resources = [UPDATED_RESOURCE.email]
     self.event.update(calendar_item_update_operation_type='SendToChangedAndSaveCopy')
 
@@ -430,7 +426,6 @@ class Test_UpdatingAnEvent(object):
                                self.get_change_key_response,
                                self.update_event_response,
                             ])
-
 
     self.event.resources = [UPDATED_RESOURCE.email]
     self.event.update(calendar_item_update_operation_type='SendToTheWholeWorld')
