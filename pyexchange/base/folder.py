@@ -53,17 +53,17 @@ class BaseExchangeFolder(object):
 
   @property
   def id(self):
-    """ **Read-only.** The internal id Exchange uses to refer to this event. """
+    """ **Read-only.** The internal id Exchange uses to refer to this folder. """
     return self._id
 
   @property
   def change_key(self):
-    """ **Read-only.** When you change an event, Exchange makes you pass a change key to prevent overwriting a previous version. """
+    """ **Read-only.** When you change an folder, Exchange makes you pass a change key to prevent overwriting a previous version. """
     return self._change_key
 
   @property
   def parent_id(self):
-    """ **Read-only.** The internal id Exchange uses to refer to this event. """
+    """ **Read-only.** The internal id Exchange uses to refer to the parent folder. """
     return self._parent_id
 
   @parent_id.setter
