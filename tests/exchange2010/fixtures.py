@@ -19,7 +19,7 @@ FolderFixture = namedtuple('FolderFixture', ['id', 'change_key', 'display_name',
 TEST_FOLDER = FolderFixture(
   id=u'AABBCCDDEEFF',
   change_key=u'GGHHIIJJKKLLMM',
-  display_name=u'Conference Room',
+  display_name=u'Conference Room ★',
   parent_id=u'FFEEDDCCBBAA',
   folder_type=u'Folder',
 )
