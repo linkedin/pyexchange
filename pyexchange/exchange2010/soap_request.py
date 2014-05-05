@@ -16,7 +16,8 @@ NAMESPACES = {u'm': MSG_NS, u't': TYPE_NS, u's': SOAP_NS}
 M = ElementMaker(namespace=MSG_NS, nsmap=NAMESPACES)
 T = ElementMaker(namespace=TYPE_NS, nsmap=NAMESPACES)
 
-EXCHANGE_DATE_FORMAT = u"%Y-%m-%dT%H:%M:%SZ"
+EXCHANGE_DATETIME_FORMAT = u"%Y-%m-%dT%H:%M:%SZ"
+EXCHANGE_DATE_FORMAT = u"%Y-%m-%d"
 
 DISTINGUISHED_IDS = (
   'calendar', 'contacts', 'deleteditems', 'drafts', 'inbox', 'journal', 'notes', 'outbox', 'sentitems',
@@ -239,8 +240,8 @@ def new_event(event):
   else:
     calendar_node.append(T.ReminderIsSet('false'))
 
-  calendar_node.append(T.Start(start.strftime(EXCHANGE_DATE_FORMAT)))
-  calendar_node.append(T.End(end.strftime(EXCHANGE_DATE_FORMAT)))
+  calendar_node.append(T.Start(start.strftime(EXCHANGE_DATETIME_FORMAT)))
+  calendar_node.append(T.End(end.strftime(EXCHANGE_DATETIME_FORMAT)))
 
   if event.is_all_day:
     calendar_node.append(T.IsAllDayEvent('true'))
@@ -255,6 +256,38 @@ def new_event(event):
 
   if event.resources:
     calendar_node.append(resource_node(element=T.Resources(), resources=event.resources))
+
+  if event.recurrence:
+
+    if event.recurrence == u'daily':
+      recurrence = T.DailyRecurrence(
+        T.Interval(str(event.recurrence_interval)),
+      )
+    elif event.recurrence == u'weekly':
+      recurrence = T.WeeklyRecurrence(
+        T.Interval(str(event.recurrence_interval)),
+        T.DaysOfWeek(event.recurrence_days),
+      )
+    elif event.recurrence == u'monthly':
+      recurrence = T.MonthlyRecurrence(
+        T.Interval(str(event.recurrence_interval)),
+        T.DayOfMonth(event.recurrence_day),
+      )
+    elif event.recurrence == u'yearly':
+      recurrence = T.YearlyRecurrence(
+        T.DayOfMonth(event.recurrence_days),
+        T.Month(event.recurrence_month),
+      )
+
+    calendar_node.append(
+      T.Recurrence(
+        recurrence,
+        T.EndDateRecurrence(
+          T.StartDate(event.start.strftime(EXCHANGE_DATE_FORMAT)),
+          T.EndDate(event.recurrence_end_date.strftime(EXCHANGE_DATE_FORMAT)),
+        )
+      )
+    )
 
   return root
 
@@ -367,14 +400,14 @@ def update_item(event, updated_attributes, calendar_item_update_operation_type):
     start = convert_datetime_to_utc(event.start)
 
     update_node.append(
-      update_property_node(field_uri="calendar:Start", node_to_insert=T.Start(start.strftime(EXCHANGE_DATE_FORMAT)))
+      update_property_node(field_uri="calendar:Start", node_to_insert=T.Start(start.strftime(EXCHANGE_DATETIME_FORMAT)))
     )
 
   if u'end' in updated_attributes:
     end = convert_datetime_to_utc(event.end)
 
     update_node.append(
-      update_property_node(field_uri="calendar:End", node_to_insert=T.End(end.strftime(EXCHANGE_DATE_FORMAT)))
+      update_property_node(field_uri="calendar:End", node_to_insert=T.End(end.strftime(EXCHANGE_DATETIME_FORMAT)))
     )
 
   if u'location' in updated_attributes:

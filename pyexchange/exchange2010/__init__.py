@@ -88,6 +88,15 @@ class Exchange2010CalendarService(BaseExchangeCalendarService):
 
 class Exchange2010CalendarEvent(BaseExchangeCalendarEvent):
 
+  recurrence = None
+  recurrence_interval = None
+  recurrence_day = None
+  recurrence_days = None
+  recurrence_end_date = None
+  recurrence_month = None
+
+  WEEKLY_DAYS = [u'Sunday', u'Monday', u'Tuesday', u'Wednesday', u'Thursday', u'Friday', u'Saturday']
+
   def _init_from_service(self, id):
 
     body = soap_request.get_item(exchange_id=id, format=u'AllProperties')
@@ -103,6 +112,50 @@ class Exchange2010CalendarEvent(BaseExchangeCalendarEvent):
 
   def as_json(self):
     raise NotImplementedError
+
+  def validate(self):
+
+    if self.recurrence is not None:
+    
+      if self.recurrence == u'daily':
+
+        if not (isinstance(self.recurrence_interval, int) and 1 <= self.recurrence_interval <= 999):
+          raise ValueError('recurrence_interval must be an int in the range from 1 to 999')
+
+      elif self.recurrence == u'weekly':
+
+        if not (isinstance(self.recurrence_interval, int) and 1 <= self.recurrence_interval <= 999):
+          raise ValueError('recurrence_interval must be an int in the range from 1 to 999')
+
+        if self.recurrence_days is None:
+          raise ValueError('recurrence_days is required')
+        for day in self.recurrence_days.split(' '):
+          if day not in self.WEEKLY_DAYS:
+            raise ValueError('recurrence_days received unknown value: %s' % day)
+
+      elif self.recurrence == u'monthly':
+
+        if not (isinstance(self.recurrence_interval, int) and 1 <= self.recurrence_interval <= 999):
+          raise ValueError('recurrence_interval must be an int in the range from 1 to 999')
+
+        if not (isinstance(self.recurrence_day, int) and 1 <= self.recurrence_day <= 31):
+          raise ValueError('recurrence_day must be an int in the range from 1 to 31')
+
+      elif self.recurrence == u'yearly':
+
+        if not (isinstance(self.recurrence_day, int) and 1 <= self.recurrence_day <= 31):
+          raise ValueError('recurrence_day must be an int in the range from 1 to 31')
+
+        if self.recurrence_month is None:
+          raise ValueError('recurrence_month is required')
+        if self.recurrence_month not in self.MONTHS:
+          raise ValueError('recurrence_month received unknown value: %s' % self.recurrence_month)
+
+      else:
+
+        raise ValueError('recurrence received unknown value: %s' % self.recurrence)
+
+    super(Exchange2010CalendarEvent, self).validate()
 
   def create(self):
     """
