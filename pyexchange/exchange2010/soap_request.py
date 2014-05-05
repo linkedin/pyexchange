@@ -269,13 +269,13 @@ def new_event(event):
         T.DaysOfWeek(event.recurrence_days),
       )
     elif event.recurrence == u'monthly':
-      recurrence = T.MonthlyRecurrence(
+      recurrence = T.AbsoluteMonthlyRecurrence(
         T.Interval(str(event.recurrence_interval)),
-        T.DayOfMonth(event.recurrence_day),
+        T.DayOfMonth(str(event.recurrence_day)),
       )
     elif event.recurrence == u'yearly':
-      recurrence = T.YearlyRecurrence(
-        T.DayOfMonth(event.recurrence_days),
+      recurrence = T.AbsoluteYearlyRecurrence(
+        T.DayOfMonth(str(event.recurrence_day)),
         T.Month(event.recurrence_month),
       )
 
