@@ -115,6 +115,7 @@ class Exchange2010CalendarEvent(BaseExchangeCalendarEvent):
   recurrence_days = None
   recurrence_end_date = None
   recurrence_month = None
+  _type = None
 
   WEEKLY_DAYS = [u'Sunday', u'Monday', u'Tuesday', u'Wednesday', u'Thursday', u'Friday', u'Saturday']
 
@@ -352,6 +353,7 @@ class Exchange2010CalendarEvent(BaseExchangeCalendarEvent):
       u'end'          : { u'xpath' : u'//m:Items/t:CalendarItem/t:End', u'cast': u'datetime'},  # noqa
       u'html_body'    : { u'xpath' : u'//m:Items/t:CalendarItem/t:Body[@BodyType="HTML"]'},  # noqa
       u'text_body'    : { u'xpath' : u'//m:Items/t:CalendarItem/t:Body[@BodyType="Text"]'},  # noqa
+      u'_type'        : { u'xpath' : u'//m:Items/t:CalendarItem/t:CalendarItemType'},  # noqa
     }
     return self.service._xpath_to_dict(element=response, property_map=property_map, namespace_map=soap_request.NAMESPACES)
 
@@ -425,6 +427,11 @@ class Exchange2010CalendarEvent(BaseExchangeCalendarEvent):
       result.append(attendee_properties)
 
     return result
+
+  @property
+  def type(self):
+    """ **Read-only.** When you change an event, Exchange makes you pass a change key to prevent overwriting a previous version. """
+    return self._type
 
 
 class Exchange2010FolderService(BaseExchangeFolderService):
