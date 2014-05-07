@@ -109,6 +109,24 @@ def get_item(exchange_id, format=u"Default"):
   return root
 
 
+def find_event(calendar_id, start, end, format=u"Default"):
+
+  id = T.DistinguishedFolderId(Id=calendar_id) if calendar_id in DISTINGUISHED_IDS else T.FolderId(Id=calendar_id)
+
+  root = M.FindItem(
+    {u'Traversal': u'Shallow'},
+    M.ItemShape(
+      T.BaseShape(format)
+    ),
+    M.CalendarView({
+      u'StartDate': start.strftime(EXCHANGE_DATETIME_FORMAT),
+      u'EndDate': end.strftime(EXCHANGE_DATETIME_FORMAT),
+    }),
+    M.ParentFolderIds(id)
+  )
+  return root
+
+
 def get_folder(folder_id, format=u"Default"):
 
   id = T.DistinguishedFolderId(Id=folder_id) if folder_id in DISTINGUISHED_IDS else T.FolderId(Id=folder_id)

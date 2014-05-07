@@ -85,6 +85,28 @@ class Exchange2010CalendarService(BaseExchangeCalendarService):
   def new_event(self, **properties):
     return Exchange2010CalendarEvent(service=self.service, calendar_id=self.calendar_id, **properties)
 
+  def find_event(self, calendar_id, start, end):
+
+    body = soap_request.find_event(calendar_id=calendar_id, start=start, end=end, format=u'AllProperties')
+    response_xml = self.service.send(body)
+    return self._parse_response_for_find_event(response_xml)
+
+  def _parse_response_for_find_event(self, response):
+
+    result = []
+    calendar_items = response.xpath(u'//t:Items/t:CalendarItem', namespaces=soap_request.NAMESPACES)
+    for item in calendar_items:
+      xml = soap_request.M.Items()
+      xml.append(etree.fromstring(etree.tostring(item)))
+      result.append(
+        Exchange2010CalendarEvent(
+          service=self.service,
+          xml=xml,
+        )
+      )
+
+    return result
+
 
 class Exchange2010CalendarEvent(BaseExchangeCalendarEvent):
 
@@ -106,6 +128,15 @@ class Exchange2010CalendarEvent(BaseExchangeCalendarEvent):
     self._update_properties(properties)
     self._id = id
 
+    self._reset_dirty_attributes()
+
+    return self
+
+  def _init_from_xml(self, xml):
+
+    properties = self._parse_response_for_get_event(xml)
+    self._update_properties(properties)
+    self._id, self._change_key = self._parse_id_and_change_key_from_response(xml)
     self._reset_dirty_attributes()
 
     return self
@@ -308,7 +339,10 @@ class Exchange2010CalendarEvent(BaseExchangeCalendarEvent):
     result = self._parse_event_properties(response)
 
     organizer_properties = self._parse_event_organizer(response)
-    result[u'organizer'] = ExchangeEventOrganizer(**organizer_properties)
+    if organizer_properties is not None:
+      if 'email' not in organizer_properties:
+        organizer_properties['email'] = None
+      result[u'organizer'] = ExchangeEventOrganizer(**organizer_properties)
 
     attendee_properties = self._parse_event_attendees(response)
     result[u'_attendees'] = self._build_resource_dictionary([ExchangeEventResponse(**attendee) for attendee in attendee_properties])
