@@ -87,21 +87,20 @@ class Exchange2010CalendarService(BaseExchangeCalendarService):
 
   def find_event(self, calendar_id, start, end):
 
-    body = soap_request.find_event(calendar_id=calendar_id, start=start, end=end, format=u'AllProperties')
+    body = soap_request.find_event(calendar_id=calendar_id, start=start, end=end, format=u'IdOnly')
     response_xml = self.service.send(body)
     return self._parse_response_for_find_event(response_xml)
 
   def _parse_response_for_find_event(self, response):
 
     result = []
-    calendar_items = response.xpath(u'//t:Items/t:CalendarItem', namespaces=soap_request.NAMESPACES)
+    calendar_items = response.xpath(u'//t:Items/t:CalendarItem/t:ItemId', namespaces=soap_request.NAMESPACES)
     for item in calendar_items:
-      xml = soap_request.M.Items()
-      xml.append(etree.fromstring(etree.tostring(item)))
+      id = item.get('Id')
       result.append(
         Exchange2010CalendarEvent(
           service=self.service,
-          xml=xml,
+          id=id,
         )
       )
 
@@ -128,15 +127,6 @@ class Exchange2010CalendarEvent(BaseExchangeCalendarEvent):
     self._update_properties(properties)
     self._id = id
 
-    self._reset_dirty_attributes()
-
-    return self
-
-  def _init_from_xml(self, xml):
-
-    properties = self._parse_response_for_get_event(xml)
-    self._update_properties(properties)
-    self._id, self._change_key = self._parse_id_and_change_key_from_response(xml)
     self._reset_dirty_attributes()
 
     return self
@@ -363,7 +353,6 @@ class Exchange2010CalendarEvent(BaseExchangeCalendarEvent):
       u'html_body'    : { u'xpath' : u'//m:Items/t:CalendarItem/t:Body[@BodyType="HTML"]'},  # noqa
       u'text_body'    : { u'xpath' : u'//m:Items/t:CalendarItem/t:Body[@BodyType="Text"]'},  # noqa
     }
-
     return self.service._xpath_to_dict(element=response, property_map=property_map, namespace_map=soap_request.NAMESPACES)
 
   def _parse_event_organizer(self, response):

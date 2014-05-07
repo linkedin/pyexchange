@@ -72,21 +72,16 @@ class BaseExchangeCalendarEvent(object):
   DATA_ATTRIBUTES = [u'_id', u'subject', u'start', u'end', u'location', u'html_body', u'text_body', u'organizer',
                      u'_attendees', u'_resources', u'reminder_minutes_before_start', u'is_all_day']
 
-  def __init__(self, service, id=None, calendar_id=u'calendar', xml=None, **kwargs):
+  def __init__(self, service, id=None, calendar_id=u'calendar', **kwargs):
     self.service = service
     self.calendar_id = calendar_id
 
-    if xml is not None:
-      self._init_from_xml(xml)
-    elif id is None:
+    if id is None:
       self._update_properties(kwargs)
     else:
       self._init_from_service(id)
 
     self._track_dirty_attributes = True  # magically look for changed attributes
-
-  def _init_from_xml(self, xml):
-    raise NotImplementedError
 
   def _init_from_service(self, id):
     """ Connect to the Exchange service and grab all the properties out of it. """
