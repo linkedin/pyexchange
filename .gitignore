@@ -43,3 +43,6 @@ nosetests.xml
 
 # damn you emacs
 *~
+
+# vim
+*.swp

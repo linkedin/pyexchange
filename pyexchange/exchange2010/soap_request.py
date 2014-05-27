@@ -18,6 +18,19 @@ T = ElementMaker(namespace=TYPE_NS, nsmap=NAMESPACES)
 
 EXCHANGE_DATE_FORMAT = u"%Y-%m-%dT%H:%M:%SZ"
 
+DISTINGUISHED_IDS = (
+  'calendar', 'contacts', 'deleteditems', 'drafts', 'inbox', 'journal', 'notes', 'outbox', 'sentitems',
+  'tasks', 'msgfolderroot', 'root', 'junkemail', 'searchfolders', 'voicemail', 'recoverableitemsroot',
+  'recoverableitemsdeletions', 'recoverableitemsversions', 'recoverableitemspurges', 'archiveroot',
+  'archivemsgfolderroot', 'archivedeleteditems', 'archiverecoverableitemsroot',
+  'Archiverecoverableitemsdeletions', 'Archiverecoverableitemsversions', 'Archiverecoverableitemspurges',
+)
+
+
+def exchange_header():
+
+  return T.RequestServerVersion({u'Version': u'Exchange2010'})
+
 
 def resource_node(element, resources):
   """
@@ -95,6 +108,60 @@ def get_item(exchange_id, format=u"Default"):
   return root
 
 
+def get_folder(folder_id, format=u"Default"):
+
+  id = T.DistinguishedFolderId(Id=folder_id) if folder_id in DISTINGUISHED_IDS else T.FolderId(Id=folder_id)
+
+  root = M.GetFolder(
+    M.FolderShape(
+      T.BaseShape(format)
+    ),
+    M.FolderIds(id)
+  )
+  return root
+
+
+def new_folder(folder):
+
+  id = T.DistinguishedFolderId(Id=folder.parent_id) if folder.parent_id in DISTINGUISHED_IDS else T.FolderId(Id=folder.parent_id)
+
+  if folder.folder_type == u'Folder':
+    folder_node = T.Folder(T.DisplayName(folder.display_name))
+  elif folder.folder_type == u'CalendarFolder':
+    folder_node = T.CalendarFolder(T.DisplayName(folder.display_name))
+
+  root = M.CreateFolder(
+    M.ParentFolderId(id),
+    M.Folders(folder_node)
+  )
+  return root
+
+
+def find_folder(parent_id, format=u"Default"):
+
+  id = T.DistinguishedFolderId(Id=parent_id) if parent_id in DISTINGUISHED_IDS else T.FolderId(Id=parent_id)
+
+  root = M.FindFolder(
+    {u'Traversal': u'Shallow'},
+    M.FolderShape(
+      T.BaseShape(format)
+    ),
+    M.ParentFolderIds(id)
+  )
+  return root
+
+
+def delete_folder(folder):
+
+  root = M.DeleteFolder(
+    {u'DeleteType': 'HardDelete'},
+    M.FolderIds(
+      T.FolderId(Id=folder.id)
+    )
+  )
+  return root
+
+
 def new_event(event):
   """
   Requests a new event be created in the store.
@@ -148,26 +215,37 @@ def new_event(event):
 </m:CreateItem>
   """
 
+  id = T.DistinguishedFolderId(Id=event.calendar_id) if event.calendar_id in DISTINGUISHED_IDS else T.FolderId(Id=event.calendar_id)
+
   start = convert_datetime_to_utc(event.start)
   end = convert_datetime_to_utc(event.end)
 
   root = M.CreateItem(
-    M.SavedItemFolderId(
-      T.DistinguishedFolderId(Id="calendar")
-    ),
+    M.SavedItemFolderId(id),
     M.Items(
       T.CalendarItem(
         T.Subject(event.subject),
         T.Body(event.body or u'', BodyType="HTML"),
-        T.Start(start.strftime(EXCHANGE_DATE_FORMAT)),
-        T.End(end.strftime(EXCHANGE_DATE_FORMAT)),
-        T.Location(event.location or u''),
       )
     ),
     SendMeetingInvitations="SendToAllAndSaveCopy"
   )
 
   calendar_node = root.xpath(u'/m:CreateItem/m:Items/t:CalendarItem', namespaces=NAMESPACES)[0]
+
+  if event.reminder_minutes_before_start:
+    calendar_node.append(T.ReminderIsSet('true'))
+    calendar_node.append(T.ReminderMinutesBeforeStart(str(event.reminder_minutes_before_start)))
+  else:
+    calendar_node.append(T.ReminderIsSet('false'))
+
+  calendar_node.append(T.Start(start.strftime(EXCHANGE_DATE_FORMAT)))
+  calendar_node.append(T.End(end.strftime(EXCHANGE_DATE_FORMAT)))
+
+  if event.is_all_day:
+    calendar_node.append(T.IsAllDayEvent('true'))
+
+  calendar_node.append(T.Location(event.location or u''))
 
   if event.required_attendees:
     calendar_node.append(resource_node(element=T.RequiredAttendees(), resources=event.required_attendees))
@@ -200,15 +278,41 @@ def delete_event(event):
 
     """
     root = M.DeleteItem(
-            M.ItemIds(
-              T.ItemId(Id=event.id, ChangeKey=event.change_key)
-            ),
-          DeleteType="HardDelete",
-          SendMeetingCancellations="SendToAllAndSaveCopy",
-          AffectedTaskOccurrences="AllOccurrences"
+      M.ItemIds(
+        T.ItemId(Id=event.id, ChangeKey=event.change_key)
+      ),
+      DeleteType="HardDelete",
+      SendMeetingCancellations="SendToAllAndSaveCopy",
+      AffectedTaskOccurrences="AllOccurrences"
     )
 
     return root
+
+
+def move_event(event, folder_id):
+
+  id = T.DistinguishedFolderId(Id=folder_id) if folder_id in DISTINGUISHED_IDS else T.FolderId(Id=folder_id)
+
+  root = M.MoveItem(
+    M.ToFolderId(id),
+    M.ItemIds(
+        T.ItemId(Id=event.id, ChangeKey=event.change_key)
+    )
+  )
+  return root
+
+
+def move_folder(folder, folder_id):
+
+  id = T.DistinguishedFolderId(Id=folder_id) if folder_id in DISTINGUISHED_IDS else T.FolderId(Id=folder_id)
+
+  root = M.MoveFolder(
+    M.ToFolderId(id),
+    M.FolderIds(
+        T.FolderId(Id=folder.id)
+    )
+  )
+  return root
 
 
 def update_property_node(node_to_insert, field_uri):
@@ -220,32 +324,29 @@ def update_property_node(node_to_insert, field_uri):
   return root
 
 
-def update_item(event, updated_attributes, send_only_to_changed_attendees=False):
+def update_item(event, updated_attributes, calendar_item_update_operation_type):
   """ Saves updates to an event in the store. Only request changes for attributes that have actually changed."""
 
-  SEND_MEETING_INVITES = u"SendToChangedAndSaveCopy" if send_only_to_changed_attendees else u"SendToAllAndSaveCopy"
-
   root = M.UpdateItem(
-            M.ItemChanges(
-              T.ItemChange(
-                T.ItemId(Id=event.id, ChangeKey=event.change_key),
-                T.Updates()
-              )
-
-            ),
-          ConflictResolution=u"AlwaysOverwrite",
-          MessageDisposition=u"SendAndSaveCopy",
-          SendMeetingInvitationsOrCancellations=SEND_MEETING_INVITES
-    )
+    M.ItemChanges(
+      T.ItemChange(
+        T.ItemId(Id=event.id, ChangeKey=event.change_key),
+        T.Updates()
+      )
+    ),
+    ConflictResolution=u"AlwaysOverwrite",
+    MessageDisposition=u"SendAndSaveCopy",
+    SendMeetingInvitationsOrCancellations=calendar_item_update_operation_type
+  )
 
   update_node = root.xpath(u'/m:UpdateItem/m:ItemChanges/t:ItemChange/t:Updates', namespaces=NAMESPACES)[0]
 
-  if not send_only_to_changed_attendees:
-    # We want to resend invites, which you do by setting an attribute to the same value it has. Right now, events
-    # are always scheduled as Busy time, so we just set that again.
-    update_node.append(
-      update_property_node(field_uri="calendar:LegacyFreeBusyStatus", node_to_insert=T.LegacyFreeBusyStatus("Busy"))
-    )
+  # if not send_only_to_changed_attendees:
+  #   # We want to resend invites, which you do by setting an attribute to the same value it has. Right now, events
+  #   # are always scheduled as Busy time, so we just set that again.
+  #   update_node.append(
+  #     update_property_node(field_uri="calendar:LegacyFreeBusyStatus", node_to_insert=T.LegacyFreeBusyStatus("Busy"))
+  #   )
 
   if u'html_body' in updated_attributes:
     update_node.append(

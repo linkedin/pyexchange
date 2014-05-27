@@ -14,26 +14,43 @@ from pyexchange.exchange2010.soap_request import EXCHANGE_DATE_FORMAT
 from ..fixtures import *
 
 EventFixture = namedtuple('EventFixture', ['id', 'change_key', 'subject', 'location', 'start', 'end', 'body'])
+FolderFixture = namedtuple('FolderFixture', ['id', 'change_key', 'display_name', 'parent_id', 'folder_type'])
+
+TEST_FOLDER = FolderFixture(
+  id=u'AABBCCDDEEFF',
+  change_key=u'GGHHIIJJKKLLMM',
+  display_name=u'Conference Room ★',
+  parent_id=u'FFEEDDCCBBAA',
+  folder_type=u'Folder',
+)
 
 TEST_EVENT = EventFixture(id=u'AABBCCDDEEFF',
                           change_key=u'GGHHIIJJKKLLMM',
                           subject=u'нyвrιd ѕolαr eclιpѕe',
-                          location= u'söüth päċïfïċ (40.1°S 123.7°W)',
-                          start=datetime(year=2050, month=5, day=20, hour=20, minute=42,second=50),
-                          end=datetime(year=2050, month=5, day=20, hour=21, minute=43,second=51),
+                          location=u'söüth päċïfïċ (40.1°S 123.7°W)',
+                          start=datetime(year=2050, month=5, day=20, hour=20, minute=42, second=50),
+                          end=datetime(year=2050, month=5, day=20, hour=21, minute=43, second=51),
                           body=u'rärr ï äm ä dïnösäür')
 
 TEST_EVENT_UPDATED = EventFixture(id=u'AABBCCDDEEFF',
-                          change_key=u'XXXXVVV',
-                          subject=u'spärklÿ hämstër sümmër bäll',
-                          location= u'häppÿ fröġ länd',
-                          start=datetime(year=2040, month=4, day=19, hour=19, minute=41,second=49),
-                          end=datetime(year=2060, month=4, day=19, hour=20, minute=42,second=50),
-                          body=u'śő śhíńý śő véŕý śhíńý')
+                                  change_key=u'XXXXVVV',
+                                  subject=u'spärklÿ hämstër sümmër bäll',
+                                  location=u'häppÿ fröġ länd',
+                                  start=datetime(year=2040, month=4, day=19, hour=19, minute=41, second=49),
+                                  end=datetime(year=2060, month=4, day=19, hour=20, minute=42, second=50),
+                                  body=u'śő śhíńý śő véŕý śhíńý')
 
-NOW = datetime.utcnow().replace(microsecond=0) # If you don't remove microseconds, it screws with datetime comparisions :/
+TEST_EVENT_MOVED = EventFixture(id=u'AABBCCDDEEFFAABBCCDDEEFF',
+                          change_key=u'GGHHIIJJKKLLMMGGHHIIJJKKLLMM',
+                          subject=u'нyвrιd ѕolαr eclιpѕe',
+                          location=u'söüth päċïfïċ (40.1°S 123.7°W)',
+                          start=datetime(year=2050, month=5, day=20, hour=20, minute=42, second=50),
+                          end=datetime(year=2050, month=5, day=20, hour=21, minute=43, second=51),
+                          body=u'rärr ï äm ä dïnösäür')
 
-ORGANIZER = ExchangeEventOrganizer(name=u'émmý ńőéthéŕ', email=u'noether@test.linkedin.com' )
+NOW = datetime.utcnow().replace(microsecond=0)  # If you don't remove microseconds, it screws with datetime comparisions :/
+
+ORGANIZER = ExchangeEventOrganizer(name=u'émmý ńőéthéŕ', email=u'noether@test.linkedin.com')
 
 # ['name', 'email', 'response', 'last_response', 'required']
 PERSON_REQUIRED_ACCEPTED = ExchangeEventResponse(name=u'ämëlïä ëärhärt', email=u'earheart@test.linkedin.com', required=True, response=RESPONSE_ACCEPTED, last_response=NOW - timedelta(days=1))
@@ -386,3 +403,226 @@ UPDATE_ITEM_RESPONSE = u"""<soap:Envelope xmlns:soap="http://schemas.xmlsoap.org
     </UpdateItemResponse>
   </soap:Body>
 </soap:Envelope>""".format(event=TEST_EVENT)
+
+
+GET_FOLDER_RESPONSE = u"""<soap:Envelope xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/"
+               xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+               xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+  <soap:Header>
+    <t:ServerVersionInfo MajorVersion="8" MinorVersion="0" MajorBuildNumber="628" MinorBuildNumber="0"
+                         xmlns:t="http://schemas.microsoft.com/exchange/services/2006/types" />
+  </soap:Header>
+  <soap:Body>
+    <GetFolderResponse xmlns:m="http://schemas.microsoft.com/exchange/services/2006/messages"
+                       xmlns:t="http://schemas.microsoft.com/exchange/services/2006/types"
+                       xmlns="http://schemas.microsoft.com/exchange/services/2006/messages">
+      <m:ResponseMessages>
+        <m:GetFolderResponseMessage ResponseClass="Success">
+          <m:ResponseCode>NoError</m:ResponseCode>
+          <m:Folders>
+            <t:{folder.folder_type}>
+              <t:FolderId Id="{folder.id}" ChangeKey="{folder.change_key}" />
+              <t:ParentFolderId Id="{folder.parent_id}" ChangeKey="AQAAAA=="/>
+              <t:DisplayName>{folder.display_name}</t:DisplayName>
+              <t:TotalCount>2</t:TotalCount>
+              <t:ChildFolderCount>0</t:ChildFolderCount>
+              <t:UnreadCount>2</t:UnreadCount>
+            </t:{folder.folder_type}>
+          </m:Folders>
+        </m:GetFolderResponseMessage>
+      </m:ResponseMessages>
+    </GetFolderResponse>
+  </soap:Body>
+</soap:Envelope>""".format(folder=TEST_FOLDER)
+
+
+FOLDER_DOES_NOT_EXIST = u"""<s:Envelope xmlns:s="http://schemas.xmlsoap.org/soap/envelope/">
+  <s:Header>
+    <h:ServerVersionInfo xmlns:h="http://schemas.microsoft.com/exchange/services/2006/types"
+                         xmlns="http://schemas.microsoft.com/exchange/services/2006/types"
+                         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                         xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+                         MajorVersion="14"
+                         MinorVersion="3"
+                         MajorBuildNumber="181"
+                         MinorBuildNumber="6"/>
+  </s:Header>
+  <s:Body xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+          xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+    <m:GetFolderResponse xmlns:m="http://schemas.microsoft.com/exchange/services/2006/messages"
+                         xmlns:t="http://schemas.microsoft.com/exchange/services/2006/types">
+      <m:ResponseMessages>
+        <m:GetFolderResponseMessage ResponseClass="Error">
+          <m:MessageText>The specified object was not found in the store.</m:MessageText>
+          <m:ResponseCode>ErrorItemNotFound</m:ResponseCode>
+          <m:DescriptiveLinkKey>0</m:DescriptiveLinkKey>
+          <m:Folders/>
+        </m:GetFolderResponseMessage>
+      </m:ResponseMessages>
+    </m:GetFolderResponse>
+  </s:Body>
+</s:Envelope>"""
+
+
+CREATE_FOLDER_RESPONSE = u"""<s:Envelope xmlns:s="http://schemas.xmlsoap.org/soap/envelope/">
+  <s:Header>
+    <h:ServerVersionInfo xmlns:h="http://schemas.microsoft.com/exchange/services/2006/types"
+                         xmlns="http://schemas.microsoft.com/exchange/services/2006/types"
+                         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                         xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+                         MajorVersion="14"
+                         MinorVersion="3"
+                         MajorBuildNumber="181"
+                         MinorBuildNumber="6"/>
+  </s:Header>
+  <s:Body xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+          xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+    <m:CreateFolderResponse xmlns:m="http://schemas.microsoft.com/exchange/services/2006/messages"
+                            xmlns:t="http://schemas.microsoft.com/exchange/services/2006/types">
+      <m:ResponseMessages>
+        <m:CreateFolderResponseMessage ResponseClass="Success">
+          <m:ResponseCode>NoError</m:ResponseCode>
+          <m:Folders>
+            <t:{folder.folder_type}>
+              <t:FolderId Id="{folder.id}" ChangeKey="{folder.change_key}"/>
+            </t:{folder.folder_type}>
+          </m:Folders>
+        </m:CreateFolderResponseMessage>
+      </m:ResponseMessages>
+    </m:CreateFolderResponse>
+  </s:Body>
+</s:Envelope>""".format(folder=TEST_FOLDER)
+
+
+DELETE_FOLDER_RESPONSE = u"""<?xml version="1.0" encoding="utf-8" ?>
+<soap:Envelope xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/"
+               xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+               xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+  <soap:Header>
+    <t:ServerVersionInfo MajorVersion="8" MinorVersion="0" MajorBuildNumber="595" MinorBuildNumber="0"
+                         xmlns:t="http://schemas.microsoft.com/exchange/services/2006/types" />
+  </soap:Header>
+  <soap:Body>
+    <DeleteFolderResponse xmlns:m="http://schemas.microsoft.com/exchange/services/2006/messages"
+                          xmlns:t="http://schemas.microsoft.com/exchange/services/2006/types"
+                          xmlns="http://schemas.microsoft.com/exchange/services/2006/messages">
+      <m:ResponseMessages>
+        <m:DeleteFolderResponseMessage ResponseClass="Success">
+          <m:ResponseCode>NoError</m:ResponseCode>
+        </m:DeleteFolderResponseMessage>
+      </m:ResponseMessages>
+    </DeleteFolderResponse>
+  </soap:Body>
+</soap:Envelope>"""
+
+
+FIND_FOLDER_RESPONSE = u"""<s:Envelope xmlns:s="http://schemas.xmlsoap.org/soap/envelope/">
+  <s:Header>
+    <h:ServerVersionInfo xmlns:h="http://schemas.microsoft.com/exchange/services/2006/types"
+                         xmlns="http://schemas.microsoft.com/exchange/services/2006/types"
+                         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                         xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+                         MajorVersion="14" MinorVersion="3" MajorBuildNumber="181" MinorBuildNumber="6"/>
+  </s:Header>
+  <s:Body xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+          xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+    <m:FindFolderResponse xmlns:m="http://schemas.microsoft.com/exchange/services/2006/messages"
+                          xmlns:t="http://schemas.microsoft.com/exchange/services/2006/types">
+      <m:ResponseMessages>
+        <m:FindFolderResponseMessage ResponseClass="Success">
+          <m:ResponseCode>NoError</m:ResponseCode>
+          <m:RootFolder TotalItemsInView="4" IncludesLastItemInRange="true">
+            <t:Folders>
+              <t:Folder>
+                <t:FolderId Id="AAhKNOZAAA=" ChangeKey="AhKNOb"/>
+                <t:ParentFolderId Id="AABBCCDDEEFF" ChangeKey="AQAAAA=="/>
+                <t:DisplayName>classrooms</t:DisplayName>
+                <t:TotalCount>0</t:TotalCount>
+                <t:ChildFolderCount>1</t:ChildFolderCount>
+                <t:UnreadCount>0</t:UnreadCount>
+              </t:Folder>
+              <t:CalendarFolder>
+                <t:FolderId Id="AhKSe7AAA=" ChangeKey="uAhKSe9"/>
+                <t:ParentFolderId Id="AABBCCDDEEFF" ChangeKey="AQAAAA=="/>
+                <t:FolderClass>IPF.Appointment</t:FolderClass>
+                <t:DisplayName>conference</t:DisplayName>
+                <t:TotalCount>0</t:TotalCount>
+                <t:ChildFolderCount>0</t:ChildFolderCount>
+              </t:CalendarFolder>
+              <t:CalendarFolder>
+                <t:FolderId Id="AAhKSrHAAA=" ChangeKey="AhKSrJ"/>
+                <t:ParentFolderId Id="AABBCCDDEEFF" ChangeKey="AQAAAA=="/>
+                <t:FolderClass>IPF.Appointment</t:FolderClass>
+                <t:DisplayName>conference0</t:DisplayName>
+                <t:TotalCount>0</t:TotalCount>
+                <t:ChildFolderCount>0</t:ChildFolderCount>
+              </t:CalendarFolder>
+              <t:CalendarFolder>
+                <t:FolderId Id="AAhKSw+AAA=" ChangeKey="AhKSxA"/>
+                <t:ParentFolderId Id="AABBCCDDEEFF" ChangeKey="AQAAAA=="/>
+                <t:FolderClass>IPF.Appointment</t:FolderClass>
+                <t:DisplayName>conference1</t:DisplayName>
+                <t:TotalCount>0</t:TotalCount>
+                <t:ChildFolderCount>0</t:ChildFolderCount>
+              </t:CalendarFolder>
+            </t:Folders>
+          </m:RootFolder>
+        </m:FindFolderResponseMessage>
+      </m:ResponseMessages>
+    </m:FindFolderResponse>
+  </s:Body>
+</s:Envelope>"""
+
+
+MOVE_EVENT_RESPONSE = u"""<s:Envelope xmlns:s="http://schemas.xmlsoap.org/soap/envelope/">
+  <s:Header>
+    <h:ServerVersionInfo xmlns:h="http://schemas.microsoft.com/exchange/services/2006/types"
+                         xmlns="http://schemas.microsoft.com/exchange/services/2006/types"
+                         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                         xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+                         MajorVersion="14" MinorVersion="3" MajorBuildNumber="181" MinorBuildNumber="6"/>
+  </s:Header>
+  <s:Body xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+          xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+    <m:MoveItemResponse xmlns:m="http://schemas.microsoft.com/exchange/services/2006/messages"
+                        xmlns:t="http://schemas.microsoft.com/exchange/services/2006/types">
+      <m:ResponseMessages>
+        <m:MoveItemResponseMessage ResponseClass="Success">
+          <m:ResponseCode>NoError</m:ResponseCode>
+          <m:Items>
+            <t:CalendarItem>
+              <t:ItemId Id="{event.id}" ChangeKey="{event.change_key}"/>
+            </t:CalendarItem>
+          </m:Items>
+        </m:MoveItemResponseMessage>
+      </m:ResponseMessages>
+    </m:MoveItemResponse>
+  </s:Body>
+</s:Envelope>""".format(event=TEST_EVENT_MOVED)
+
+
+MOVE_FOLDER_RESPONSE = u"""<?xml version="1.0" encoding="utf-8" ?>
+<soap:Envelope xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/"
+               xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+               xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+  <soap:Header>
+    <t:ServerVersionInfo MajorVersion="8" MinorVersion="0" MajorBuildNumber="685" MinorBuildNumber="8"
+                         xmlns:t="http://schemas.microsoft.com/exchange/services/2006/types" />
+  </soap:Header>
+  <soap:Body>
+    <MoveFolderResponse xmlns:m="http://schemas.microsoft.com/exchange/services/2006/messages"
+                        xmlns:t="http://schemas.microsoft.com/exchange/services/2006/types"
+                        xmlns="http://schemas.microsoft.com/exchange/services/2006/messages">
+      <m:ResponseMessages>
+        <m:MoveFolderResponseMessage ResponseClass="Success">
+          <m:ResponseCode>NoError</m:ResponseCode>
+          <m:Folders>
+            <t:Folder>
+              <t:FolderId Id="{folder.id}" ChangeKey="folder.change_key" />
+            </t:Folder>
+          </m:Folders>
+        </m:MoveFolderResponseMessage>
+      </m:ResponseMessages>
+    </MoveFolderResponse>
+  </soap:Body>
+</soap:Envelope>""".format(folder=TEST_FOLDER)

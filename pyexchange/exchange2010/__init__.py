@@ -9,24 +9,32 @@ Unless required by applicable law or agreed to in writing, software?distributed 
 
 import logging
 from ..base.calendar import BaseExchangeCalendarEvent, BaseExchangeCalendarService, ExchangeEventOrganizer, ExchangeEventResponse
+from ..base.folder import BaseExchangeFolder, BaseExchangeFolderService
 from ..base.soap import ExchangeServiceSOAP
 from ..exceptions import FailedExchangeException, ExchangeStaleChangeKeyException, ExchangeItemNotFoundException, ExchangeInternalServerTransientErrorException, ExchangeIrresolvableConflictException
 
 from . import soap_request
+
+from lxml import etree
+
+import warnings
 
 log = logging.getLogger("pyexchange")
 
 
 class Exchange2010Service(ExchangeServiceSOAP):
 
-  def calendar(self):
-    return Exchange2010CalendarService(service=self)
+  def calendar(self, id="calendar"):
+    return Exchange2010CalendarService(service=self, calendar_id=id)
 
   def mail(self):
     raise NotImplementedError("Sorry - nothin' here. Feel like adding it? :)")
 
   def contacts(self):
     raise NotImplementedError("Sorry - nothin' here. Feel like adding it? :)")
+
+  def folder(self):
+    return Exchange2010FolderService(service=self)
 
   def _send_soap_request(self, body, headers=None, retries=2, timeout=30, encoding="utf-8"):
     headers = [("Accept", "text/xml"), ("Content-type", "text/xml; charset=%s " % encoding)]
@@ -75,7 +83,7 @@ class Exchange2010CalendarService(BaseExchangeCalendarService):
     return Exchange2010CalendarEvent(service=self.service, id=id)
 
   def new_event(self, **properties):
-    return Exchange2010CalendarEvent(service=self.service, **properties)
+    return Exchange2010CalendarEvent(service=self.service, calendar_id=self.calendar_id, **properties)
 
 
 class Exchange2010CalendarEvent(BaseExchangeCalendarEvent):
@@ -136,12 +144,12 @@ class Exchange2010CalendarEvent(BaseExchangeCalendarEvent):
       raise ValueError(u"There are unsaved changes to this invite - please update it first: %r" % self._dirty_attributes)
 
     self.refresh_change_key()
-    body = soap_request.update_item(self, [], send_only_to_changed_attendees=False)
+    body = soap_request.update_item(self, [], calendar_item_update_operation_type=u'SendOnlyToAll')
     self.service.send(body)
 
     return self
 
-  def update(self, send_only_to_changed_attendees=False):
+  def update(self, calendar_item_update_operation_type=u'SendToAllAndSaveCopy', **kwargs):
     """
     Updates an event in Exchange.  ::
 
@@ -157,13 +165,28 @@ class Exchange2010CalendarEvent(BaseExchangeCalendarEvent):
     if not self.id:
       raise TypeError(u"You can't update an event that hasn't been created yet.")
 
+    if 'send_only_to_changed_attendees' in kwargs:
+      warnings.warn(
+        "The argument send_only_to_changed_attendees is deprecated.  Use calendar_item_update_operation_type instead.",
+        DeprecationWarning,
+      )  # 20140502
+      if kwargs['send_only_to_changed_attendees']:
+        calendar_item_update_operation_type = u'SendToChangedAndSaveCopy'
+
+    VALID_UPDATE_OPERATION_TYPES = (
+      u'SendToNone', u'SendOnlyToAll', u'SendOnlyToChanged',
+      u'SendToAllAndSaveCopy', u'SendToChangedAndSaveCopy',
+    )
+    if calendar_item_update_operation_type not in VALID_UPDATE_OPERATION_TYPES:
+      raise ValueError('calendar_item_update_operation_type has unknown value')
+
     self.validate()
 
     if self._dirty_attributes:
       log.debug(u"Updating these attributes: %r" % self._dirty_attributes)
       self.refresh_change_key()
 
-      body = soap_request.update_item(self, self._dirty_attributes, send_only_to_changed_attendees=send_only_to_changed_attendees)
+      body = soap_request.update_item(self, self._dirty_attributes, calendar_item_update_operation_type=calendar_item_update_operation_type)
       self.service.send(body)
       self._reset_dirty_attributes()
     else:
@@ -187,6 +210,27 @@ class Exchange2010CalendarEvent(BaseExchangeCalendarEvent):
     self.service.send(soap_request.delete_event(self))
     # TODO rsanders high - check return status to make sure it was actually sent
     return None
+
+  def move_to(self, folder_id):
+    if not folder_id:
+      raise TypeError(u"You can't move an event to a non-existant folder")
+
+    if not isinstance(folder_id, basestring):
+      raise TypeError(u"folder_id must be a string")
+
+    if not self.id:
+      raise TypeError(u"You can't move an event that hasn't been created yet.")
+
+    self.refresh_change_key()
+    response_xml = self.service.send(soap_request.move_event(self, folder_id))
+    new_id, new_change_key = self._parse_id_and_change_key_from_response(response_xml)
+    if not new_id:
+      raise ValueError(u"MoveItem returned success but requested item not moved")
+
+    self._id = new_id
+    self._change_key = new_change_key
+    self.calendar_id = folder_id
+    return self
 
   def refresh_change_key(self):
 
@@ -305,3 +349,136 @@ class Exchange2010CalendarEvent(BaseExchangeCalendarEvent):
       result.append(attendee_properties)
 
     return result
+
+
+class Exchange2010FolderService(BaseExchangeFolderService):
+
+  def folder(self, id=None, **kwargs):
+    return Exchange2010Folder(service=self.service, id=id, **kwargs)
+
+  def get_folder(self, id):
+    return Exchange2010Folder(service=self.service, id=id)
+
+  def new_folder(self, **properties):
+    return Exchange2010Folder(service=self.service, **properties)
+
+  def find_folder(self, parent_id):
+
+    body = soap_request.find_folder(parent_id=parent_id, format=u'AllProperties')
+    response_xml = self.service.send(body)
+    return self._parse_response_for_find_folder(response_xml)
+
+  def _parse_response_for_find_folder(self, response):
+
+    result = []
+    folders = response.xpath(u'//t:Folders/t:*', namespaces=soap_request.NAMESPACES)
+    for folder in folders:
+      result.append(
+        Exchange2010Folder(
+          service=self.service,
+          xml=etree.fromstring(etree.tostring(folder))  # Might be a better way to do this
+        )
+      )
+
+    return result
+
+
+class Exchange2010Folder(BaseExchangeFolder):
+
+  def _init_from_service(self, id):
+
+    body = soap_request.get_folder(folder_id=id, format=u'AllProperties')
+    response_xml = self.service.send(body)
+    properties = self._parse_response_for_get_folder(response_xml)
+
+    self._update_properties(properties)
+
+    return self
+
+  def _init_from_xml(self, xml):
+
+    properties = self._parse_response_for_get_folder(xml)
+    self._update_properties(properties)
+
+    return self
+
+  def create(self):
+
+    self.validate()
+    body = soap_request.new_folder(self)
+
+    response_xml = self.service.send(body)
+    self._id, self._change_key = self._parse_id_and_change_key_from_response(response_xml)
+
+    return self
+
+  def delete(self):
+    if not self.id:
+      raise TypeError(u"You can't delete a folder that hasn't been created yet.")
+
+    body = soap_request.delete_folder(self)
+
+    response_xml = self.service.send(body)  # noqa
+    # TODO: verify deletion
+    self._id = None
+    self._change_key = None
+
+    return None
+
+  def move_to(self, folder_id):
+    if not folder_id:
+      raise TypeError(u"You can't move to a non-existant folder")
+
+    if not isinstance(folder_id, basestring):
+      raise TypeError(u"folder_id must be a string")
+
+    if not self.id:
+      raise TypeError(u"You can't move a folder that hasn't been created yet.")
+
+    response_xml = self.service.send(soap_request.move_folder(self, folder_id))  # noqa
+
+    result_id, result_key = self._parse_id_and_change_key_from_response(response_xml)
+    if self.id != result_id:
+      raise ValueError(u"MoveFolder returned success but requested folder not moved")
+
+    self.parent_id = folder_id
+    return self
+
+  def _parse_response_for_get_folder(self, response):
+    FOLDER_PATH = u'//t:Folder | //t:CalendarFolder | //t:ContactsFolder | //t:SearchFolder | //t:TasksFolder'
+
+    path = response.xpath(FOLDER_PATH, namespaces=soap_request.NAMESPACES)[0]
+    result = self._parse_folder_properties(path)
+    return result
+
+  def _parse_folder_properties(self, response):
+
+    property_map = {
+      u'display_name'       : { u'xpath' : u't:DisplayName'},
+    }
+
+    self._id, self._change_key = self._parse_id_and_change_key_from_response(response)
+    self._parent_id = self._parse_parent_id_and_change_key_from_response(response)[0]
+    self.folder_type = etree.QName(response).localname
+
+    return self.service._xpath_to_dict(element=response, property_map=property_map, namespace_map=soap_request.NAMESPACES)
+
+  def _parse_id_and_change_key_from_response(self, response):
+
+    id_elements = response.xpath(u'//t:FolderId', namespaces=soap_request.NAMESPACES)
+
+    if id_elements:
+      id_element = id_elements[0]
+      return id_element.get(u"Id", None), id_element.get(u"ChangeKey", None)
+    else:
+      return None, None
+
+  def _parse_parent_id_and_change_key_from_response(self, response):
+
+    id_elements = response.xpath(u'//t:ParentFolderId', namespaces=soap_request.NAMESPACES)
+
+    if id_elements:
+      id_element = id_elements[0]
+      return id_element.get(u"Id", None), id_element.get(u"ChangeKey", None)
+    else:
+      return None, None
