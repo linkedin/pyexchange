@@ -24,3 +24,19 @@ Initial public release.
 
 Integrating some more granular exception handling.
 
+0.4 (June 2, 2014)
+------------------
+
+We had some great contributions, so this is a release for that. 
+
+Alejandro Ramirez (got-root):
+
+- Added functionality to create/delete/get/find/move folders of all types. (Creating a new CalendarFolder is creating a new calendar in exchange)
+- Added ability to create events in specific folders.
+- Added ability to move events between calendars (folders).
+- Created tests for all new features. 
+
+Ben Le (kantas92)
+
+* Fixed unicode vs bytecode encoding madness when sending unicode.
+
