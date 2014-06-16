@@ -40,3 +40,8 @@ Ben Le (kantas92)
 
 * Fixed unicode vs bytecode encoding madness when sending unicode.
 
+0.4.1 (June 15, 2014)
+------------------
+
+Turns out I actually didn't release Ben Le's code when I thought I did. Bad release engineer, no biscuit. 
+
