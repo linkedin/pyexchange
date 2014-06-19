@@ -5,6 +5,7 @@ Licensed under the Apache License, Version 2.0 (the "License");?you may not use 
 Unless required by applicable law or agreed to in writing, software?distributed under the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 """
 import logging
+import sys
 from ntlm import HTTPNtlmAuthHandler
 
 try:
@@ -78,13 +79,24 @@ class ExchangeNTLMAuthConnection(ExchangeBaseConnection):
     if not self.opener:
       self.opener = self.build_opener()
 
+    url = self.url
+
     # lxml tostring returns str in Python 2, and bytes in python 3
     # if XML is actually unicode, urllib2 will barf.
     # Oddly enough this only seems to be a problem in 2.7. 2.6 doesn't seem to care.
-    if isinstance(body, str):
-      body = body.decode(encoding)
+    # The url used should be a bytestring as well. 2.6 doesn't care about this but 2.7 does.
+    if sys.version_info < (3, 0):
+      if isinstance(body, unicode):
+        body = body.encode(encoding)
+      if isinstance(url, unicode):
+        url = url.encode(encoding)
+    else:
+      if isinstance(body, str):
+        body = body.encode(encoding)
+      if isinstance(url, str):
+        url = url.encode(encoding)
 
-    request = urllib2.Request(self.url, body)
+    request = urllib2.Request(url, body)
 
     if headers:
       for header in headers:
