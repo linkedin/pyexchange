@@ -429,9 +429,8 @@ def update_item(event, updated_attributes, calendar_item_update_operation_type):
       )
 
   if u'is_all_day' in updated_attributes:
-    if event.is_all_day:
-      update_node.append(
-        update_property_node(field_uri="calendar:IsAllDayEvent", node_to_insert=T.IsAllDayEvent(str(event.is_all_day).lower()))
-      )
+    update_node.append(
+      update_property_node(field_uri="calendar:IsAllDayEvent", node_to_insert=T.IsAllDayEvent(str(event.is_all_day).lower()))
+    )
 
   return root
