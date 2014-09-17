@@ -412,4 +412,26 @@ def update_item(event, updated_attributes, calendar_item_update_operation_type):
     else:
       update_node.append(delete_field(field_uri="calendar:Resources"))
 
+  if u'reminder_minutes_before_start' in updated_attributes:
+    if event.reminder_minutes_before_start:
+      update_node.append(
+        update_property_node(field_uri="item:ReminderIsSet", node_to_insert=T.ReminderIsSet('true'))
+      )
+      update_node.append(
+        update_property_node(
+          field_uri="item:ReminderMinutesBeforeStart",
+          node_to_insert=T.ReminderMinutesBeforeStart(str(event.reminder_minutes_before_start))
+        )
+      )
+    else:
+      update_node.append(
+        update_property_node(field_uri="item:ReminderIsSet", node_to_insert=T.ReminderIsSet('false'))
+      )
+
+  if u'is_all_day' in updated_attributes:
+    if event.is_all_day:
+      update_node.append(
+        update_property_node(field_uri="calendar:IsAllDayEvent", node_to_insert=T.IsAllDayEvent(str(event.is_all_day).lower()))
+      )
+
   return root
