@@ -105,6 +105,13 @@ class ExchangeServiceSOAP(object):
 
           if cast_as == u'datetime':
             result_for_node.append(self._parse_date(node.text))
+          elif cast_as == u'int':
+            result_for_node.append(int(node.text))
+          elif cast_as == u'bool':
+            if node.text.lower() == u'true':
+              result_for_node.append(True)
+            else:
+              result_for_node.append(False)
           else:
             result_for_node.append(node.text)
 
