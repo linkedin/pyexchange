@@ -354,6 +354,8 @@ class Exchange2010CalendarEvent(BaseExchangeCalendarEvent):
       u'html_body'    : { u'xpath' : u'//m:Items/t:CalendarItem/t:Body[@BodyType="HTML"]'},  # noqa
       u'text_body'    : { u'xpath' : u'//m:Items/t:CalendarItem/t:Body[@BodyType="Text"]'},  # noqa
       u'_type'        : { u'xpath' : u'//m:Items/t:CalendarItem/t:CalendarItemType'},  # noqa
+      u'reminder_minutes_before_start'  : { u'xpath' : u'//m:Items/t:CalendarItem/t:ReminderMinutesBeforeStart', u'cast': u'int'},  # noqa
+      u'is_all_day'   : { u'xpath' : u'//m:Items/t:CalendarItem/t:IsAllDayEvent', u'cast': u'bool'},  # noqa
     }
     return self.service._xpath_to_dict(element=response, property_map=property_map, namespace_map=soap_request.NAMESPACES)
 
