@@ -4,8 +4,6 @@ Licensed under the Apache License, Version 2.0 (the "License");?you may not use 
 
 Unless required by applicable law or agreed to in writing, software?distributed under the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 """
-# TODO get flake8 to just ignore the lines I want, dangit
-# flake8: noqa
 
 import logging
 from ..base.calendar import BaseExchangeCalendarEvent, BaseExchangeCalendarService, ExchangeEventOrganizer, ExchangeEventResponse
@@ -138,7 +136,7 @@ class Exchange2010CalendarEvent(BaseExchangeCalendarEvent):
   def validate(self):
 
     if self.recurrence is not None:
-    
+
       if self.recurrence == u'daily':
 
         if not (isinstance(self.recurrence_interval, int) and 1 <= self.recurrence_interval <= 999):
@@ -346,16 +344,49 @@ class Exchange2010CalendarEvent(BaseExchangeCalendarEvent):
   def _parse_event_properties(self, response):
 
     property_map = {
-      u'subject'      : { u'xpath' : u'//m:Items/t:CalendarItem/t:Subject'},  # noqa
-      u'location'     : { u'xpath' : u'//m:Items/t:CalendarItem/t:Location'},  # noqa
-      u'availability' : { u'xpath' : u'//m:Items/t:CalendarItem/t:LegacyFreeBusyStatus'},  # noqa
-      u'start'        : { u'xpath' : u'//m:Items/t:CalendarItem/t:Start', u'cast': u'datetime'},  # noqa
-      u'end'          : { u'xpath' : u'//m:Items/t:CalendarItem/t:End', u'cast': u'datetime'},  # noqa
-      u'html_body'    : { u'xpath' : u'//m:Items/t:CalendarItem/t:Body[@BodyType="HTML"]'},  # noqa
-      u'text_body'    : { u'xpath' : u'//m:Items/t:CalendarItem/t:Body[@BodyType="Text"]'},  # noqa
-      u'_type'        : { u'xpath' : u'//m:Items/t:CalendarItem/t:CalendarItemType'},  # noqa
-      u'reminder_minutes_before_start'  : { u'xpath' : u'//m:Items/t:CalendarItem/t:ReminderMinutesBeforeStart', u'cast': u'int'},  # noqa
-      u'is_all_day'   : { u'xpath' : u'//m:Items/t:CalendarItem/t:IsAllDayEvent', u'cast': u'bool'},  # noqa
+      u'subject': {
+        u'xpath': u'//m:Items/t:CalendarItem/t:Subject',
+      },
+      u'location':
+      {
+        u'xpath': u'//m:Items/t:CalendarItem/t:Location',
+      },
+      u'availability':
+      {
+        u'xpath': u'//m:Items/t:CalendarItem/t:LegacyFreeBusyStatus',
+      },
+      u'start':
+      {
+        u'xpath': u'//m:Items/t:CalendarItem/t:Start',
+        u'cast': u'datetime',
+      },
+      u'end':
+      {
+        u'xpath': u'//m:Items/t:CalendarItem/t:End',
+        u'cast': u'datetime',
+      },
+      u'html_body':
+      {
+        u'xpath': u'//m:Items/t:CalendarItem/t:Body[@BodyType="HTML"]',
+      },
+      u'text_body':
+      {
+        u'xpath': u'//m:Items/t:CalendarItem/t:Body[@BodyType="Text"]',
+      },
+      u'_type':
+      {
+        u'xpath': u'//m:Items/t:CalendarItem/t:CalendarItemType',
+      },
+      u'reminder_minutes_before_start':
+      {
+        u'xpath': u'//m:Items/t:CalendarItem/t:ReminderMinutesBeforeStart',
+        u'cast': u'int',
+      },
+      u'is_all_day':
+      {
+        u'xpath': u'//m:Items/t:CalendarItem/t:IsAllDayEvent',
+        u'cast': u'bool',
+      },
     }
     return self.service._xpath_to_dict(element=response, property_map=property_map, namespace_map=soap_request.NAMESPACES)
 
@@ -364,8 +395,14 @@ class Exchange2010CalendarEvent(BaseExchangeCalendarEvent):
     organizer = response.xpath(u'//m:Items/t:CalendarItem/t:Organizer/t:Mailbox', namespaces=soap_request.NAMESPACES)
 
     property_map = {
-      u'name'      : { u'xpath' : u't:Name'},  # noqa
-      u'email'     : { u'xpath' : u't:EmailAddress'},  # noqa
+      u'name':
+      {
+        u'xpath': u't:Name'
+      },
+      u'email':
+      {
+        u'xpath': u't:EmailAddress'
+      },
     }
 
     if organizer:
@@ -375,10 +412,23 @@ class Exchange2010CalendarEvent(BaseExchangeCalendarEvent):
 
   def _parse_event_resources(self, response):
     property_map = {
-      u'name'         : { u'xpath' : u't:Mailbox/t:Name'},  # noqa
-      u'email'        : { u'xpath' : u't:Mailbox/t:EmailAddress'},  # noqa
-      u'response'     : { u'xpath' : u't:ResponseType'},  # noqa
-      u'last_response': { u'xpath' : u't:LastResponseTime', u'cast': u'datetime'},  # noqa
+      u'name':
+      {
+        u'xpath': u't:Mailbox/t:Name'
+      },
+      u'email':
+      {
+        u'xpath': u't:Mailbox/t:EmailAddress'
+      },
+      u'response':
+      {
+        u'xpath': u't:ResponseType'
+      },
+      u'last_response':
+      {
+        u'xpath': u't:LastResponseTime',
+        u'cast': u'datetime'
+      },
     }
 
     result = []
@@ -399,10 +449,23 @@ class Exchange2010CalendarEvent(BaseExchangeCalendarEvent):
   def _parse_event_attendees(self, response):
 
     property_map = {
-      u'name'         : { u'xpath' : u't:Mailbox/t:Name'},  # noqa
-      u'email'        : { u'xpath' : u't:Mailbox/t:EmailAddress'},  # noqa
-      u'response'     : { u'xpath' : u't:ResponseType'},  # noqa
-      u'last_response': { u'xpath' : u't:LastResponseTime', u'cast': u'datetime'},  # noqa
+      u'name':
+      {
+        u'xpath': u't:Mailbox/t:Name'
+      },
+      u'email':
+      {
+        u'xpath': u't:Mailbox/t:EmailAddress'
+      },
+      u'response':
+      {
+        u'xpath': u't:ResponseType'
+      },
+      u'last_response':
+      {
+        u'xpath': u't:LastResponseTime',
+        u'cast': u'datetime'
+      },
     }
 
     result = []
@@ -539,7 +602,7 @@ class Exchange2010Folder(BaseExchangeFolder):
   def _parse_folder_properties(self, response):
 
     property_map = {
-      u'display_name'       : { u'xpath' : u't:DisplayName'},
+      u'display_name': {u'xpath': u't:DisplayName'},
     }
 
     self._id, self._change_key = self._parse_id_and_change_key_from_response(response)
