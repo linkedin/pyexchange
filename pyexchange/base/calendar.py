@@ -305,6 +305,12 @@ class BaseExchangeCalendarEvent(object):
   def resend_invitations(self):
     raise NotImplementedError
 
+  def get_master(self):
+    raise NotImplementedError
+
+  def get_occurrances(self):
+    raise NotImplementedError
+
   def as_json(self):
     """ Output ourselves as JSON """
     return json.dumps(self.__getstate__())
