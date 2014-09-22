@@ -109,6 +109,40 @@ def get_item(exchange_id, format=u"Default"):
   return root
 
 
+def get_master(exchange_id, format=u"Default"):
+  """
+    Requests a calendar item from the store.
+
+    exchange_id is the id for this event in the Exchange store.
+
+    format controls how much data you get back from Exchange. Full docs are here, but acceptible values
+    are IdOnly, Default, and AllProperties.
+
+    http://msdn.microsoft.com/en-us/library/aa564509(v=exchg.140).aspx
+
+    <m:GetItem  xmlns:m="http://schemas.microsoft.com/exchange/services/2006/messages"
+            xmlns:t="http://schemas.microsoft.com/exchange/services/2006/types">
+      <m:ItemShape>
+          <t:BaseShape>{format}</t:BaseShape>
+      </m:ItemShape>
+      <m:ItemIds>
+          <t:RecurringMasterItemId OccurrenceId="{exchange_id}"/>
+      </m:ItemIds>
+  </m:GetItem>
+
+  """
+
+  root = M.GetItem(
+    M.ItemShape(
+      T.BaseShape(format)
+    ),
+    M.ItemIds(
+      T.RecurringMasterItemId(OccurrenceId=exchange_id)
+    )
+  )
+  return root
+
+
 def find_event(calendar_id, start, end, format=u"Default"):
 
   id = T.DistinguishedFolderId(Id=calendar_id) if calendar_id in DISTINGUISHED_IDS else T.FolderId(Id=calendar_id)

@@ -305,6 +305,14 @@ class Exchange2010CalendarEvent(BaseExchangeCalendarEvent):
     self.calendar_id = folder_id
     return self
 
+  def get_master(self):
+
+    body = soap_request.get_master(exchange_id=self._id, format=u"AllProperties")
+    response_xml = self.service.send(body)
+    master_id, self._change_key = self._parse_id_and_change_key_from_response(response_xml)
+
+    return Exchange2010CalendarEvent(service=self.service, id=master_id)
+
   def refresh_change_key(self):
 
     body = soap_request.get_item(exchange_id=self._id, format=u"IdOnly")
