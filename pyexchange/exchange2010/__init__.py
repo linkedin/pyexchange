@@ -117,6 +117,14 @@ class Exchange2010CalendarEvent(BaseExchangeCalendarEvent):
 
   WEEKLY_DAYS = [u'Sunday', u'Monday', u'Tuesday', u'Wednesday', u'Thursday', u'Friday', u'Saturday']
 
+  def _init_from_xml(self, xml):
+
+    properties = self._parse_response_for_get_event(xml)
+    self._update_properties(properties)
+    self._id, self._change_key = self._parse_id_and_change_key_from_response(xml)
+
+    return self
+
   def _init_from_service(self, id):
 
     body = soap_request.get_item(exchange_id=id, format=u'AllProperties')
@@ -309,9 +317,8 @@ class Exchange2010CalendarEvent(BaseExchangeCalendarEvent):
 
     body = soap_request.get_master(exchange_id=self._id, format=u"AllProperties")
     response_xml = self.service.send(body)
-    master_id, self._change_key = self._parse_id_and_change_key_from_response(response_xml)
 
-    return Exchange2010CalendarEvent(service=self.service, id=master_id)
+    return Exchange2010CalendarEvent(service=self.service, xml=response_xml)
 
   def refresh_change_key(self):
 
