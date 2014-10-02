@@ -1,10 +1,10 @@
-Exchange2010CalendarEvent
-=========================
-
 .. automodule:: pyexchange.exchange2010
 
 .. toctree::
    :maxdepth: 2
+
+Exchange2010CalendarEvent
+=========================
 
 .. autoclass:: Exchange2010CalendarEvent
     :members: create, update, cancel, resend_invitations
@@ -173,4 +173,33 @@ Exchange2010CalendarEvent
       *resources* can be a list of email addresses or :class:`ExchangeEventAttendee` objects.
 
 
+Exchange2010FolderService
+=========================
 
+.. autoclass:: Exchange2010FolderService()
+    :members: get_folder, new_folder, find_folder
+
+
+Exchange2010Folder
+=========================
+
+.. autoclass:: Exchange2010Folder()
+    :members: create, delete, move_to
+
+    .. attribute:: id
+
+      **Read-only.** The internal id Exchange uses to refer to this folder.
+
+    .. attribute:: parent_id
+
+      **Read-only.** The internal id Exchange uses to refer to the parent folder.
+
+    .. attribute:: folder_type
+
+      The type of folder this is.  Can be one of the following::
+
+        'Folder', 'CalendarFolder', 'ContactsFolder', 'SearchFolder', 'TasksFolder'
+
+    .. attribute:: display_name
+
+      The name of the folder.
