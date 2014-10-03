@@ -212,6 +212,13 @@ class Exchange2010CalendarEvent(BaseExchangeCalendarEvent):
     return None
 
   def move_to(self, folder_id):
+    """
+    :param str folder_id: The Calendar ID to where you want to move the event to.
+    Moves an event to a different folder (calendar).  ::
+
+      event = service.calendar().get_event(id='KEY HERE')
+      event.move_to(folder_id='NEW CALENDAR KEY HERE')
+    """
     if not folder_id:
       raise TypeError(u"You can't move an event to a non-existant folder")
 
@@ -359,12 +366,61 @@ class Exchange2010FolderService(BaseExchangeFolderService):
     return Exchange2010Folder(service=self.service, id=id, **kwargs)
 
   def get_folder(self, id):
+    """
+      :param str id:  The Exchange ID of the folder to retrieve from the Exchange store.
+
+      Retrieves the folder specified by the id, from the Exchange store.
+
+      **Examples**::
+
+        folder = service.folder().get_folder(id)
+
+    """
+
     return Exchange2010Folder(service=self.service, id=id)
 
   def new_folder(self, **properties):
+    """
+      new_folder(display_name=display_name, folder_type=folder_type, parent_id=parent_id)
+      :param str display_name:  The display name given to the new folder.
+      :param str folder_type:  The type of folder to create.  Possible values are 'Folder',
+        'CalendarFolder', 'ContactsFolder', 'SearchFolder', 'TasksFolder'.
+      :param str parent_id:  The parent folder where the new folder will be created.
+
+      Creates a new folder with the given properties.  Not saved until you call the create() method.
+
+      **Examples**::
+
+        folder = service.folder().new_folder(
+          display_name=u"New Folder Name",
+          folder_type="CalendarFolder",
+          parent_id='calendar',
+        )
+        folder.create()
+
+    """
+
     return Exchange2010Folder(service=self.service, **properties)
 
   def find_folder(self, parent_id):
+    """
+      find_folder(parent_id)
+      :param str parent_id:  The parent folder to list.
+
+      This method will return a list of sub-folders to a given parent folder.
+
+      **Examples**::
+
+        # Iterate through folders within the default 'calendar' folder.
+        folders = service.folder().find_folder(parent_id='calendar')
+        for folder in folders:
+          print(folder.display_name)
+
+        # Delete all folders within the 'calendar' folder.
+        folders = service.folder().find_folder(parent_id='calendar')
+        for folder in folders:
+          folder.delete()
+    """
 
     body = soap_request.find_folder(parent_id=parent_id, format=u'AllProperties')
     response_xml = self.service.send(body)
@@ -405,6 +461,16 @@ class Exchange2010Folder(BaseExchangeFolder):
     return self
 
   def create(self):
+    """
+    Creates a folder in Exchange. ::
+
+      calendar = service.folder().new_folder(
+        display_name=u"New Folder Name",
+        folder_type="CalendarFolder",
+        parent_id='calendar',
+      )
+      calendar.create()
+    """
 
     self.validate()
     body = soap_request.new_folder(self)
@@ -415,6 +481,14 @@ class Exchange2010Folder(BaseExchangeFolder):
     return self
 
   def delete(self):
+    """
+    Deletes a folder from the Exchange store. ::
+
+      folder = service.folder().get_folder(id)
+      print("Deleting folder: %s" % folder.display_name)
+      folder.delete()
+    """
+
     if not self.id:
       raise TypeError(u"You can't delete a folder that hasn't been created yet.")
 
@@ -428,6 +502,14 @@ class Exchange2010Folder(BaseExchangeFolder):
     return None
 
   def move_to(self, folder_id):
+    """
+    :param str folder_id: The Folder ID of what will be the new parent folder, of this folder.
+    Move folder to a different location, specified by folder_id::
+
+      folder = service.folder().get_folder(id)
+      folder.move_to(folder_id="ID of new location's folder")
+    """
+
     if not folder_id:
       raise TypeError(u"You can't move to a non-existant folder")
 
