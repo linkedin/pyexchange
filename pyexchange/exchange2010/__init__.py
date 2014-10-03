@@ -503,6 +503,7 @@ class Exchange2010Folder(BaseExchangeFolder):
 
   def move_to(self, folder_id):
     """
+    :param str folder_id: The Folder ID of what will be the new parent folder, of this folder.
     Move folder to a different location, specified by folder_id::
 
       folder = service.folder().get_folder(id)
