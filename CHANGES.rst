@@ -45,3 +45,17 @@ Ben Le (kantas92)
 
 Turns out I actually didn't release Ben Le's code when I thought I did. Bad release engineer, no biscuit. 
 
+0.4.2 (October 3, 2014)
+----------------------
+
+Alejandro Ramirez (got-root):
+
+- Bug fixes around the new folder code. 
+- More documentation on how to use folders. 
+
+
+Upcoming releases
+------------------
+
+0.5 - Hey did you know that requests can do NTLM? I didn't. This release will be working on moving away from urllib2 & the unmaintained python-ntlm and towards requests (huzzah) and ideally Python 3 support (HUZZAH).
+
