@@ -4,19 +4,10 @@ Licensed under the Apache License, Version 2.0 (the "License");?you may not use 
 
 Unless required by applicable law or agreed to in writing, software?distributed under the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 """
+import requests
+from requests_ntlm import HttpNtlmAuth
+
 import logging
-import sys
-from ntlm import HTTPNtlmAuthHandler
-
-try:
-  import urllib2
-except ImportError:  # Python 3
-  import urllib.request as urllib2
-
-try:
-  from httplib import HTTPException
-except ImportError:  # Python 3
-  from http.client import HTTPException
 
 from .exceptions import FailedExchangeException
 
@@ -39,7 +30,7 @@ class ExchangeNTLMAuthConnection(ExchangeBaseConnection):
     self.password = password
 
     self.handler = None
-    self.opener = None
+    self.session = None
     self.password_manager = None
 
   def build_password_manager(self):
@@ -48,85 +39,35 @@ class ExchangeNTLMAuthConnection(ExchangeBaseConnection):
 
     log.debug(u'Constructing password manager')
 
-    self.password_manager = urllib2.HTTPPasswordMgrWithDefaultRealm()
-    self.password_manager.add_password(None, self.url, self.username, self.password)
+    self.password_manager = HttpNtlmAuth(self.username, self.password)
 
     return self.password_manager
 
-  def build_handler(self):
-    if self.handler:
-      return self.handler
-
-    log.debug(u'Constructing handler')
-
-    self.password_manager = self.build_password_manager()
-    self.handler = HTTPNtlmAuthHandler.HTTPNtlmAuthHandler(self.password_manager)
-
-    return self.handler
-
-  def build_opener(self):
-    if self.opener:
-      return self.opener
+  def build_session(self):
+    if self.session:
+      return self.session
 
     log.debug(u'Constructing opener')
 
-    self.handler = self.build_handler()
-    self.opener = urllib2.build_opener(self.handler)
+    self.password_manager = self.build_password_manager()
 
-    return self.opener
+    self.session = requests.Session()
+    self.session.auth = self.password_manager
+
+    return self.session
 
   def send(self, body, headers=None, retries=2, timeout=30, encoding=u"utf-8"):
-    if not self.opener:
-      self.opener = self.build_opener()
+    if not self.session:
+      self.session = self.build_session()
 
-    url = self.url
+    try:
+      response = self.session.post(self.url, data=body, headers=headers)
+      response.raise_for_status()
+    except requests.exceptions.RequestException as err:
+      raise FailedExchangeException(u'Unable to connect to Exchange: %s' % err)
 
-    # lxml tostring returns str in Python 2, and bytes in python 3
-    # if XML is actually unicode, urllib2 will barf.
-    # Oddly enough this only seems to be a problem in 2.7. 2.6 doesn't seem to care.
-    # The url used should be a bytestring as well. 2.6 doesn't care about this but 2.7 does.
-    if sys.version_info < (3, 0):
-      if isinstance(body, unicode):
-        body = body.encode(encoding)
-      if isinstance(url, unicode):
-        url = url.encode(encoding)
-    else:
-      if isinstance(body, str):
-        body = body.encode(encoding)
-      if isinstance(url, str):
-        url = url.encode(encoding)
+    log.info(u'Got response: {code}'.format(code=response.status_code))
+    log.debug(u'Got response headers: {headers}'.format(headers=response.headers))
+    log.debug(u'Got body: {body}'.format(body=response.text))
 
-    request = urllib2.Request(url, body)
-
-    if headers:
-      for header in headers:
-        log.debug(u'Adding header: {name} - {value}'.format(name=header[0], value=header[1]))
-        request.add_header(header[0], header[1])
-
-    error = None
-    for retry in range(retries + 1):
-      log.info(u'Connection attempt #{0} of {1}'.format(retry + 1, retries))
-      try:
-        # retrieve the result
-        log.info(u'Sending request to url: {0}'.format(request.get_full_url()))
-        try:
-          response = self.opener.open(request, timeout=timeout)
-
-        except urllib2.HTTPError as err:
-          # Called for 500 errors
-          raise FailedExchangeException(u'Unable to connect to Exchange: %s' % err)
-
-        response_code = response.getcode()
-        body = response.read().decode(encoding)
-
-        log.info(u'Got response: {code}'.format(code=response_code))
-        log.debug(u'Got response headers: {headers}'.format(headers=response.info()))
-        log.debug(u'Got body: {body}'.format(body=body))
-
-        return body
-      except HTTPException as err:
-        log.error(u'Caught err, retrying: {err}'.format(err=err))
-        error = err
-
-    # All retries used up, re-throw the exception.
-    raise error
+    return response.text

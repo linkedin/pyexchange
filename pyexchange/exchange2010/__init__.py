@@ -37,7 +37,10 @@ class Exchange2010Service(ExchangeServiceSOAP):
     return Exchange2010FolderService(service=self)
 
   def _send_soap_request(self, body, headers=None, retries=2, timeout=30, encoding="utf-8"):
-    headers = [("Accept", "text/xml"), ("Content-type", "text/xml; charset=%s " % encoding)]
+    headers = {
+      "Accept" : "text/xml",
+      "Content-type" : "text/xml; charset=%s " % encoding
+    }
     return super(Exchange2010Service, self)._send_soap_request(body, headers=headers, retries=retries, timeout=timeout, encoding=encoding)
 
   def _check_for_errors(self, xml_tree):
