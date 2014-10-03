@@ -212,6 +212,13 @@ class Exchange2010CalendarEvent(BaseExchangeCalendarEvent):
     return None
 
   def move_to(self, folder_id):
+    """
+    :param str folder_id: The Calendar ID to where you want to move the event to.
+    Moves an event to a different folder (calendar).  ::
+
+      event = service.calendar().get_event(id='KEY HERE')
+      event.move_to(folder_id='NEW CALENDAR KEY HERE')
+    """
     if not folder_id:
       raise TypeError(u"You can't move an event to a non-existant folder")
 

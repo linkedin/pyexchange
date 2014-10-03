@@ -7,7 +7,7 @@ Exchange2010CalendarEvent
 =========================
 
 .. autoclass:: Exchange2010CalendarEvent
-    :members: create, update, cancel, resend_invitations
+    :members: create, update, cancel, resend_invitations, move_to
 
     .. attribute:: id
 
