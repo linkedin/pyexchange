@@ -345,7 +345,7 @@ class Exchange2010CalendarEvent(BaseExchangeCalendarEvent):
       if event.id:
         events.append(event)
 
-    return filter(None, events)
+    return events
 
   def refresh_change_key(self):
 
