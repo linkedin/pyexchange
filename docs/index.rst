@@ -197,6 +197,20 @@ To resend invitations to all participants, do::
 
     event.resend_invitations()
 
+Creating a new calendar
+```````````````````````
+
+To create a new exchange calendar, do::
+
+    calendar = service.folder().new_folder(
+        display_name="New Name",        # This will be the display name for the new calendar.  Can be set to whatever you want.
+        folder_type="CalendarFolder",   # This MUST be set to the value "CalendarFolder".  It tells exchange what type of folder to create.
+        parent_id='calendar',           # This does not have to be 'calendar' but is recommended.  The value 'calendar' will resolve to the base Calendar folder.
+    )
+    calendar.create()
+
+By creating a folder of the type "CalendarFolder", you are creating a new calendar.
+
 Other tips and tricks
 `````````````````````
 
