@@ -14,7 +14,7 @@ from ..exceptions import FailedExchangeException, ExchangeStaleChangeKeyExceptio
 from . import soap_request
 
 from lxml import etree
-
+from copy import deepcopy
 import warnings
 
 log = logging.getLogger("pyexchange")
@@ -68,6 +68,9 @@ class Exchange2010Service(ExchangeServiceSOAP):
       elif code.text == u"ErrorInternalServerTransientError":
         # temporary internal server error. throw a special error so we can retry
         raise ExchangeInternalServerTransientErrorException(u"Exchange Fault (%s) from Exchange server" % code.text)
+      elif code.text == u"ErrorCalendarOccurrenceIndexIsOutOfRecurrenceRange":
+        # just means some or all of the requested instances are out of range
+        pass
       elif code.text != u"NoError":
         raise FailedExchangeException(u"Exchange Fault (%s) from Exchange server" % code.text)
 
@@ -319,6 +322,23 @@ class Exchange2010CalendarEvent(BaseExchangeCalendarEvent):
     response_xml = self.service.send(body)
 
     return Exchange2010CalendarEvent(service=self.service, xml=response_xml)
+
+  def get_occurrence(self, instance_index):
+
+    if not all([isinstance(i, int) for i in instance_index]):
+      raise TypeError("instance_index must be an interable of type int")
+
+    body = soap_request.get_occurrence(exchange_id=self._id, instance_index=instance_index, format=u"AllProperties")
+    response_xml = self.service.send(body)
+
+    items = response_xml.xpath(u'//m:GetItemResponseMessage/m:Items', namespaces=soap_request.NAMESPACES)
+    events = []
+    for item in items:
+      event = Exchange2010CalendarEvent(service=self.service, xml=deepcopy(item))
+      if event.id:
+        events.append(event)
+
+    return filter(None, events)
 
   def refresh_change_key(self):
 

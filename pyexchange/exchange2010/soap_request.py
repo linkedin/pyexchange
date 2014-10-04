@@ -143,6 +143,46 @@ def get_master(exchange_id, format=u"Default"):
   return root
 
 
+def get_occurrence(exchange_id, instance_index, format=u"Default"):
+  """
+    Requests one or more calendar items from the store matching the master & index.
+
+    exchange_id is the id for the master event in the Exchange store.
+
+    format controls how much data you get back from Exchange. Full docs are here, but acceptible values
+    are IdOnly, Default, and AllProperties.
+
+    GetItem Doc:
+    http://msdn.microsoft.com/en-us/library/aa564509(v=exchg.140).aspx
+    OccurrenceItemId Doc:
+    http://msdn.microsoft.com/en-us/library/office/aa580744(v=exchg.150).aspx
+
+    <m:GetItem  xmlns:m="http://schemas.microsoft.com/exchange/services/2006/messages"
+            xmlns:t="http://schemas.microsoft.com/exchange/services/2006/types">
+      <m:ItemShape>
+          <t:BaseShape>{format}</t:BaseShape>
+      </m:ItemShape>
+      <m:ItemIds>
+        {% for index in instance_index %}
+          <t:OccurrenceItemId RecurringMasterId="{exchange_id}" InstanceIndex="{{ index }}"/>
+        {% endfor %}
+      </m:ItemIds>
+    </m:GetItem>
+  """
+
+  root = M.GetItem(
+    M.ItemShape(
+      T.BaseShape(format)
+    ),
+    M.ItemIds()
+  )
+
+  items_node = root.xpath("//m:ItemIds", namespaces=NAMESPACES)[0]
+  for index in instance_index:
+    items_node.append(T.OccurrenceItemId(RecurringMasterId=exchange_id, InstanceIndex=str(index)))
+  return root
+
+
 def find_event(calendar_id, start, end, format=u"Default"):
 
   id = T.DistinguishedFolderId(Id=calendar_id) if calendar_id in DISTINGUISHED_IDS else T.FolderId(Id=calendar_id)

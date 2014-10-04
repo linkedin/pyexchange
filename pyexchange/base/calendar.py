@@ -314,7 +314,7 @@ class BaseExchangeCalendarEvent(object):
   def get_master(self):
     raise NotImplementedError
 
-  def get_occurrances(self):
+  def get_occurrance(self, instance_index):
     raise NotImplementedError
 
   def as_json(self):
