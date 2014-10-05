@@ -71,7 +71,7 @@ class ExchangeServiceSOAP(object):
 
   def _parse_date(self, date_string):
     date = datetime.strptime(date_string, self.EXCHANGE_DATE_FORMAT)
-    date.replace(tzinfo=utc)
+    date = date.replace(tzinfo=utc)
 
     return date
 
