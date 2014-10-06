@@ -175,6 +175,30 @@ If the id doesn't match anything in Exchange, a ``pyexchange.exceptions.Exchange
 
 For all other errors, we throw a ``pyexchange.exceptions.FailedExchangeException``.
 
+Listing events
+``````````````
+
+To list events between two dates, simply do:
+
+    events = my_calendar.list_events(
+        start=datetime(2014,10,1,11,0,0, tzinfo=timezone("US/Eastern")),
+        end=datetime(2014,10,29,11,0,0, tzinfo=timezone("US/Eastern"))
+    )
+
+This will return a list of Event objects that are between start and end. If no results are found, it will return an empty list (it intentionally will not throw an Exception.)
+
+    for event in calendar_list.events:
+        print "{start} {stop} - {subject}".format(
+            start=event.start,
+            stop=event.end,
+            subject=event.subject
+        )
+
+The default response will have most of the data populated in the Event object. It will not have full details for Organizer or Attendees, due to the response provided by Exchange. If you would like to populate all of these details, call the load_all_details() function, such as:
+
+    events = my_calendar.list_events(start, end)
+    events.load_all_details()
+
 Cancelling an event
 ```````````````````
 
