@@ -442,7 +442,6 @@ class Exchange2010CalendarEvent(BaseExchangeCalendarEvent):
       u'recurrence_days':
       {
         u'xpath': u'//m:Items/t:CalendarItem/t:Recurrence/t:WeeklyRecurrence/t:DaysOfWeek',
-        u'cast': u'int',
       },
       u'recurrence_day':
       {
