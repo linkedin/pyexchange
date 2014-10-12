@@ -111,6 +111,16 @@ class Test_CreatingANewRecurringDailyEvent(object):
     self.event.recurrence_end_date = self.event.start.date() - timedelta(1)
     self.event.create()
 
+  @httprettified
+  def test_create_recurrence_daily(self):
+    HTTPretty.register_uri(
+      HTTPretty.POST, FAKE_EXCHANGE_URL,
+      body=CREATE_ITEM_RESPONSE.encode('utf-8'),
+      content_type='text/xml; charset=utf-8',
+    )
+    self.event.create()
+    eq_(self.event.id, TEST_RECURRING_EVENT_DAILY.id)
+
 
 class Test_PopulatingANewRecurringWeeklyEvent():
   """ Tests all the attribute setting works when creating a new event """
@@ -221,6 +231,16 @@ class Test_CreatingANewRecurringWeeklyEvent(object):
   def test_recurrence_no_day(self):
     self.event.recurrence_days = None
     self.event.create()
+
+  @httprettified
+  def test_create_recurrence_weekly(self):
+    HTTPretty.register_uri(
+      HTTPretty.POST, FAKE_EXCHANGE_URL,
+      body=CREATE_ITEM_RESPONSE.encode('utf-8'),
+      content_type='text/xml; charset=utf-8',
+    )
+    self.event.create()
+    eq_(self.event.id, TEST_RECURRING_EVENT_WEEKLY.id)
 
 
 class Test_PopulatingANewRecurringMonthlyEvent():
@@ -333,6 +353,16 @@ class Test_CreatingANewRecurringMonthlyEvent(object):
     self.event.recurrence_day = None
     self.event.create()
 
+  @httprettified
+  def test_create_recurrence_monthly(self):
+    HTTPretty.register_uri(
+      HTTPretty.POST, FAKE_EXCHANGE_URL,
+      body=CREATE_ITEM_RESPONSE.encode('utf-8'),
+      content_type='text/xml; charset=utf-8',
+    )
+    self.event.create()
+    eq_(self.event.id, TEST_RECURRING_EVENT_MONTHLY.id)
+
 
 class Test_PopulatingANewRecurringYearlyEvent():
   """ Tests all the attribute setting works when creating a new event """
@@ -416,3 +446,13 @@ class Test_CreatingANewRecurringYearlyEvent(object):
   def test_recurrence_no_month(self):
     self.event.recurrence_month = None
     self.event.create()
+
+  @httprettified
+  def test_create_recurrence_yearly(self):
+    HTTPretty.register_uri(
+      HTTPretty.POST, FAKE_EXCHANGE_URL,
+      body=CREATE_ITEM_RESPONSE.encode('utf-8'),
+      content_type='text/xml; charset=utf-8',
+    )
+    self.event.create()
+    eq_(self.event.id, TEST_RECURRING_EVENT_YEARLY.id)
