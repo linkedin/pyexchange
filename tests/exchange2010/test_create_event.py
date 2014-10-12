@@ -10,10 +10,10 @@ from pyexchange import Exchange2010Service
 
 from pyexchange.connection import ExchangeNTLMAuthConnection
 from pyexchange.base.calendar import ExchangeEventAttendee
-from pyexchange.exceptions import *
+from pyexchange.exceptions import *  # noqa
 
-from .fixtures import *
-from .. import wip
+from .fixtures import *  # noqa
+
 
 class Test_PopulatingANewEvent():
   """ Tests all the attribute setting works when creating a new event """
@@ -22,10 +22,13 @@ class Test_PopulatingANewEvent():
   @classmethod
   def setUpAll(cls):
 
-    cls.calendar =  Exchange2010Service(connection=ExchangeNTLMAuthConnection(url=FAKE_EXCHANGE_URL,
-                                                                          username=FAKE_EXCHANGE_USERNAME,
-                                                                          password=FAKE_EXCHANGE_PASSWORD)
-                                    ).calendar()
+    cls.calendar = Exchange2010Service(
+      connection=ExchangeNTLMAuthConnection(
+        url=FAKE_EXCHANGE_URL,
+        username=FAKE_EXCHANGE_USERNAME,
+        password=FAKE_EXCHANGE_PASSWORD,
+      )
+    ).calendar()
 
   def test_canary(self):
     event = self.calendar.event()
@@ -106,7 +109,6 @@ class Test_PopulatingANewEvent():
     eq_(event.required_attendees[0].email, PERSON_REQUIRED_ACCEPTED.email)
     eq_(event.optional_attendees[0].email, PERSON_OPTIONAL_ACCEPTED.email)
 
-
   def test_can_add_resources(self):
     event = self.calendar.event(resources=[RESOURCE.email])
     eq_(len(event.resources), 1)
@@ -155,9 +157,11 @@ class Test_CreatingANewEvent(object):
   @httprettified
   def test_can_set_subject(self):
 
-    HTTPretty.register_uri(HTTPretty.POST, FAKE_EXCHANGE_URL,
-                             body=CREATE_ITEM_RESPONSE.encode('utf-8'),
-                             content_type='text/xml; charset=utf-8')
+    HTTPretty.register_uri(
+      HTTPretty.POST, FAKE_EXCHANGE_URL,
+      body=CREATE_ITEM_RESPONSE.encode('utf-8'),
+      content_type='text/xml; charset=utf-8',
+    )
 
     self.event.subject = TEST_EVENT.subject
     self.event.create()
@@ -167,9 +171,11 @@ class Test_CreatingANewEvent(object):
   @httprettified
   def test_can_set_location(self):
 
-    HTTPretty.register_uri(HTTPretty.POST, FAKE_EXCHANGE_URL,
-                             body=CREATE_ITEM_RESPONSE.encode('utf-8'),
-                             content_type='text/xml; charset=utf-8')
+    HTTPretty.register_uri(
+      HTTPretty.POST, FAKE_EXCHANGE_URL,
+      body=CREATE_ITEM_RESPONSE.encode('utf-8'),
+      content_type='text/xml; charset=utf-8',
+    )
 
     self.event.location = TEST_EVENT.location
     self.event.create()
@@ -179,9 +185,11 @@ class Test_CreatingANewEvent(object):
   @httprettified
   def test_can_set_html_body(self):
 
-    HTTPretty.register_uri(HTTPretty.POST, FAKE_EXCHANGE_URL,
-                             body=CREATE_ITEM_RESPONSE.encode('utf-8'),
-                             content_type='text/xml; charset=utf-8')
+    HTTPretty.register_uri(
+      HTTPretty.POST, FAKE_EXCHANGE_URL,
+      body=CREATE_ITEM_RESPONSE.encode('utf-8'),
+      content_type='text/xml; charset=utf-8'
+    )
 
     self.event.html_body = TEST_EVENT.body
     self.event.create()
@@ -191,9 +199,11 @@ class Test_CreatingANewEvent(object):
   @httprettified
   def test_can_set_text_body(self):
 
-    HTTPretty.register_uri(HTTPretty.POST, FAKE_EXCHANGE_URL,
-                             body=CREATE_ITEM_RESPONSE.encode('utf-8'),
-                             content_type='text/xml; charset=utf-8')
+    HTTPretty.register_uri(
+      HTTPretty.POST, FAKE_EXCHANGE_URL,
+      body=CREATE_ITEM_RESPONSE.encode('utf-8'),
+      content_type='text/xml; charset=utf-8',
+    )
 
     self.event.text_body = TEST_EVENT.body
     self.event.create()
@@ -203,9 +213,11 @@ class Test_CreatingANewEvent(object):
   @httprettified
   def test_start_time(self):
 
-    HTTPretty.register_uri(HTTPretty.POST, FAKE_EXCHANGE_URL,
-                             body=CREATE_ITEM_RESPONSE.encode('utf-8'),
-                             content_type='text/xml; charset=utf-8')
+    HTTPretty.register_uri(
+      HTTPretty.POST, FAKE_EXCHANGE_URL,
+      body=CREATE_ITEM_RESPONSE.encode('utf-8'),
+      content_type='text/xml; charset=utf-8',
+    )
 
     self.event.create()
 
@@ -214,9 +226,11 @@ class Test_CreatingANewEvent(object):
   @httprettified
   def test_end_time(self):
 
-    HTTPretty.register_uri(HTTPretty.POST, FAKE_EXCHANGE_URL,
-                             body=CREATE_ITEM_RESPONSE.encode('utf-8'),
-                             content_type='text/xml; charset=utf-8')
+    HTTPretty.register_uri(
+      HTTPretty.POST, FAKE_EXCHANGE_URL,
+      body=CREATE_ITEM_RESPONSE.encode('utf-8'),
+      content_type='text/xml; charset=utf-8',
+    )
 
     self.event.create()
 
@@ -225,9 +239,11 @@ class Test_CreatingANewEvent(object):
   @httprettified
   def test_attendees(self):
 
-    HTTPretty.register_uri(HTTPretty.POST, FAKE_EXCHANGE_URL,
-                             body=CREATE_ITEM_RESPONSE.encode('utf-8'),
-                             content_type='text/xml; charset=utf-8')
+    HTTPretty.register_uri(
+      HTTPretty.POST, FAKE_EXCHANGE_URL,
+      body=CREATE_ITEM_RESPONSE.encode('utf-8'),
+      content_type='text/xml; charset=utf-8',
+    )
 
     attendees = [PERSON_REQUIRED_ACCEPTED.email, PERSON_REQUIRED_TENTATIVE.email]
 
@@ -240,9 +256,11 @@ class Test_CreatingANewEvent(object):
   @raises(ValueError)
   def test_resources_must_have_an_email_address(self):
 
-    HTTPretty.register_uri(HTTPretty.POST, FAKE_EXCHANGE_URL,
-                             body=CREATE_ITEM_RESPONSE.encode('utf-8'),
-                             content_type='text/xml; charset=utf-8')
+    HTTPretty.register_uri(
+      HTTPretty.POST, FAKE_EXCHANGE_URL,
+      body=CREATE_ITEM_RESPONSE.encode('utf-8'),
+      content_type='text/xml; charset=utf-8',
+    )
 
     attendees = [PERSON_WITH_NO_EMAIL_ADDRESS]
 
@@ -252,14 +270,13 @@ class Test_CreatingANewEvent(object):
   @httprettified
   def test_resources(self):
 
-    HTTPretty.register_uri(HTTPretty.POST, FAKE_EXCHANGE_URL,
-                             body=CREATE_ITEM_RESPONSE.encode('utf-8'),
-                             content_type='text/xml; charset=utf-8')
-
+    HTTPretty.register_uri(
+      HTTPretty.POST, FAKE_EXCHANGE_URL,
+      body=CREATE_ITEM_RESPONSE.encode('utf-8'),
+      content_type='text/xml; charset=utf-8',
+    )
 
     self.event.resources = [RESOURCE.email]
     self.event.create()
 
     assert RESOURCE.email in HTTPretty.last_request.body.decode('utf-8')
-
-
