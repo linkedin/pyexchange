@@ -69,6 +69,8 @@ class BaseExchangeCalendarEvent(object):
   recurrence_days = None
   recurrence_month = None
 
+  _type = None
+
   _attendees = {}  # people attending
   _resources = {}  # conference rooms attending
 
@@ -85,6 +87,13 @@ class BaseExchangeCalendarEvent(object):
   RECURRENCE_ATTRIBUTES = [
     'recurrence', 'recurrence_end_date', 'recurrence_day', 'recurrence_days',
     'recurrence_month', 'recurrence_interval',
+  ]
+
+  WEEKLY_DAYS = [u'Sunday', u'Monday', u'Tuesday', u'Wednesday', u'Thursday', u'Friday', u'Saturday']
+
+  MONTHS = [
+    'January', 'February', 'March', 'April', 'May', 'June',
+    'July', 'August', 'September', 'October', 'November', 'December',
   ]
 
   def __init__(self, service, id=None, xml=None, calendar_id=u'calendar', **kwargs):
@@ -122,6 +131,11 @@ class BaseExchangeCalendarEvent(object):
   def body(self):
     """ **Read-only.** Returns either the html_body or the text_body property, whichever is set. """
     return self.html_body or self.text_body or None
+
+  @property
+  def type(self):
+    """ **Read-only.** This is an attribute pulled from an event in the exchange store. """
+    return self._type
 
   @property
   def attendees(self):

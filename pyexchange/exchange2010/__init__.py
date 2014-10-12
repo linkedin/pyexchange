@@ -111,16 +111,6 @@ class Exchange2010CalendarService(BaseExchangeCalendarService):
 
 class Exchange2010CalendarEvent(BaseExchangeCalendarEvent):
 
-  recurrence = None
-  recurrence_interval = None
-  recurrence_day = None
-  recurrence_days = None
-  recurrence_end_date = None
-  recurrence_month = None
-  _type = None
-
-  WEEKLY_DAYS = [u'Sunday', u'Monday', u'Tuesday', u'Wednesday', u'Thursday', u'Friday', u'Saturday']
-
   def _init_from_xml(self, xml):
 
     properties = self._parse_response_for_get_event(xml)
@@ -585,11 +575,6 @@ class Exchange2010CalendarEvent(BaseExchangeCalendarEvent):
       result.append(attendee_properties)
 
     return result
-
-  @property
-  def type(self):
-    """ **Read-only.** When you change an event, Exchange makes you pass a change key to prevent overwriting a previous version. """
-    return self._type
 
 
 class Exchange2010FolderService(BaseExchangeFolderService):
