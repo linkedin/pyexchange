@@ -75,6 +75,11 @@ class ExchangeServiceSOAP(object):
 
     return date
 
+  def _parse_date_only_naive(self, date_string):
+    date = datetime.strptime(date_string[0:10], self.EXCHANGE_DATE_FORMAT[0:8])
+
+    return date.date()
+
   def _xpath_to_dict(self, element, property_map, namespace_map):
     """
     property_map = {
@@ -105,6 +110,8 @@ class ExchangeServiceSOAP(object):
 
           if cast_as == u'datetime':
             result_for_node.append(self._parse_date(node.text))
+          elif cast_as == u'date_only_naive':
+            result_for_node.append(self._parse_date_only_naive(node.text))
           elif cast_as == u'int':
             result_for_node.append(int(node.text))
           elif cast_as == u'bool':

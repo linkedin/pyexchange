@@ -558,4 +558,48 @@ def update_item(event, updated_attributes, calendar_item_update_operation_type):
       update_property_node(field_uri="calendar:IsAllDayEvent", node_to_insert=T.IsAllDayEvent(str(event.is_all_day).lower()))
     )
 
+  for attr in event.RECURRENCE_ATTRIBUTES:
+    if attr in updated_attributes:
+
+      recurrence_node = T.Recurrence()
+
+      if event.recurrence == 'daily':
+        recurrence_node.append(
+          T.DailyRecurrence(
+            T.Interval(str(event.recurrence_interval)),
+          )
+        )
+      elif event.recurrence == 'weekly':
+        recurrence_node.append(
+          T.WeeklyRecurrence(
+            T.Interval(str(event.recurrence_interval)),
+            T.DaysOfWeek(event.recurrence_days),
+          )
+        )
+      elif event.recurrence == 'monthly':
+        recurrence_node.append(
+          T.AbsoluteMonthlyRecurrence(
+            T.Interval(str(event.recurrence_interval)),
+            T.DayOfMonth(str(event.recurrence_day)),
+          )
+        )
+      elif event.recurrence == 'yearly':
+        recurrence_node.append(
+          T.AbsoluteYearlyRecurrence(
+            T.DayOfMonth(str(event.recurrence_day)),
+            T.Month(event.recurrence_month),
+          )
+        )
+
+      recurrence_node.append(
+        T.EndDateRecurrence(
+          T.StartDate(event.start.strftime(EXCHANGE_DATE_FORMAT)),
+          T.EndDate(event.recurrence_end_date.strftime(EXCHANGE_DATE_FORMAT)),
+        )
+      )
+
+      update_node.append(
+        update_property_node(field_uri="calendar:Recurrence", node_to_insert=recurrence_node)
+      )
+
   return root

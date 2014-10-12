@@ -62,6 +62,13 @@ class BaseExchangeCalendarEvent(object):
   reminder_minutes_before_start = None
   is_all_day = None
 
+  recurrence = None
+  recurrence_end_date = None
+  recurrence_day = None
+  recurrence_days = None
+  recurrence_days = None
+  recurrence_month = None
+
   _attendees = {}  # people attending
   _resources = {}  # conference rooms attending
 
@@ -69,8 +76,16 @@ class BaseExchangeCalendarEvent(object):
   _dirty_attributes = set()  # any attributes that have changed, and we need to update in Exchange
 
   # these attributes can be pickled, or output as JSON
-  DATA_ATTRIBUTES = [u'_id', u'subject', u'start', u'end', u'location', u'html_body', u'text_body', u'organizer',
-                     u'_attendees', u'_resources', u'reminder_minutes_before_start', u'is_all_day']
+  DATA_ATTRIBUTES = [
+    u'_id', u'subject', u'start', u'end', u'location', u'html_body', u'text_body', u'organizer',
+    u'_attendees', u'_resources', u'reminder_minutes_before_start', u'is_all_day',
+    'recurrence', 'recurrence_interval', 'recurrence_days', 'recurrence_day', 'recurrence_month',
+  ]
+
+  RECURRENCE_ATTRIBUTES = [
+    'recurrence', 'recurrence_end_date', 'recurrence_day', 'recurrence_days',
+    'recurrence_month', 'recurrence_interval',
+  ]
 
   def __init__(self, service, id=None, xml=None, calendar_id=u'calendar', **kwargs):
     self.service = service

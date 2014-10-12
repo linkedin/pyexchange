@@ -429,8 +429,51 @@ class Exchange2010CalendarEvent(BaseExchangeCalendarEvent):
         u'xpath': u'//m:Items/t:CalendarItem/t:IsAllDayEvent',
         u'cast': u'bool',
       },
+      u'recurrence_end_date':
+      {
+        u'xpath': u'//m:Items/t:CalendarItem/t:Recurrence/t:EndDateRecurrence/t:EndDate',
+        u'cast': u'date_only_naive',
+      },
+      u'recurrence_interval':
+      {
+        u'xpath': u'//m:Items/t:CalendarItem/t:Recurrence/*/t:Interval',
+        u'cast': u'int',
+      },
+      u'recurrence_days':
+      {
+        u'xpath': u'//m:Items/t:CalendarItem/t:Recurrence/t:WeeklyRecurrence/t:DaysOfWeek',
+        u'cast': u'int',
+      },
+      u'recurrence_day':
+      {
+        u'xpath': u'//m:Items/t:CalendarItem/t:Recurrence/*/t:DayOfMonth',
+        u'cast': u'int',
+      },
+      u'recurrence_month':
+      {
+        u'xpath': u'//m:Items/t:CalendarItem/t:Recurrence/t:AbsoluteYearlyRecurrence/t:Month',
+      },
     }
-    return self.service._xpath_to_dict(element=response, property_map=property_map, namespace_map=soap_request.NAMESPACES)
+
+    result = self.service._xpath_to_dict(element=response, property_map=property_map, namespace_map=soap_request.NAMESPACES)
+
+    recurrence_node = response.xpath(u'//m:Items/t:CalendarItem/t:Recurrence', namespaces=soap_request.NAMESPACES)[0]
+
+    if recurrence_node is not None:
+
+      if recurrence_node.find('t:DailyRecurrence', namespaces=soap_request.NAMESPACES) is not None:
+        result['recurrence'] = 'daily'
+
+      elif recurrence_node.find('t:WeeklyRecurrence', namespaces=soap_request.NAMESPACES) is not None:
+        result['recurrence'] = 'weekly'
+
+      elif recurrence_node.find('t:AbsoluteMonthlyRecurrence', namespaces=soap_request.NAMESPACES) is not None:
+        result['recurrence'] = 'monthly'
+
+      elif recurrence_node.find('t:AbsoluteYearlyRecurrence', namespaces=soap_request.NAMESPACES) is not None:
+        result['recurrence'] = 'yearly'
+
+    return result
 
   def _parse_event_organizer(self, response):
 
