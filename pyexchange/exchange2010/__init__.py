@@ -457,7 +457,10 @@ class Exchange2010CalendarEvent(BaseExchangeCalendarEvent):
 
     result = self.service._xpath_to_dict(element=response, property_map=property_map, namespace_map=soap_request.NAMESPACES)
 
-    recurrence_node = response.xpath(u'//m:Items/t:CalendarItem/t:Recurrence', namespaces=soap_request.NAMESPACES)[0]
+    try:
+      recurrence_node = response.xpath(u'//m:Items/t:CalendarItem/t:Recurrence', namespaces=soap_request.NAMESPACES)[0]
+    except IndexError:
+      recurrence_node = None
 
     if recurrence_node is not None:
 
