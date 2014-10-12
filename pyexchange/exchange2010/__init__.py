@@ -15,6 +15,7 @@ from . import soap_request
 
 from lxml import etree
 from copy import deepcopy
+from datetime import date
 import warnings
 
 log = logging.getLogger("pyexchange")
@@ -147,6 +148,11 @@ class Exchange2010CalendarEvent(BaseExchangeCalendarEvent):
   def validate(self):
 
     if self.recurrence is not None:
+
+      if not (isinstance(self.recurrence_end_date, date)):
+        raise ValueError('recurrence_end_date must be of type date')
+      elif (self.recurrence_end_date < self.start.date()):
+        raise ValueError('recurrence_end_date must be after start')
 
       if self.recurrence == u'daily':
 
