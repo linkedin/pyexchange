@@ -5,7 +5,7 @@ Licensed under the Apache License, Version 2.0 (the "License");?you may not use 
 
 Unless required by applicable law or agreed to in writing, software?distributed under the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 """
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, date
 from pytz import utc
 from collections import namedtuple
 from pyexchange.base.calendar import ExchangeEventOrganizer, ExchangeEventResponse, RESPONSE_ACCEPTED, RESPONSE_DECLINED, RESPONSE_TENTATIVE, RESPONSE_UNKNOWN
@@ -15,6 +15,34 @@ from pyexchange.exchange2010.soap_request import EXCHANGE_DATE_FORMAT  # noqa
 from ..fixtures import *  # noqa
 
 EventFixture = namedtuple('EventFixture', ['id', 'change_key', 'subject', 'location', 'start', 'end', 'body'])
+RecurringEventDailyFixture = namedtuple(
+  'RecurringEventDailyFixture',
+  [
+    'id', 'change_key', 'subject', 'location', 'start', 'end', 'body',
+    'recurrence', 'recurrence_end_date', 'recurrence_interval',
+  ]
+)
+RecurringEventWeeklyFixture = namedtuple(
+  'RecurringEventWeeklyFixture',
+  [
+    'id', 'change_key', 'subject', 'location', 'start', 'end', 'body',
+    'recurrence', 'recurrence_end_date', 'recurrence_interval', 'recurrence_days',
+  ]
+)
+RecurringEventMonthlyFixture = namedtuple(
+  'RecurringEventMonthlyFixture',
+  [
+    'id', 'change_key', 'subject', 'location', 'start', 'end', 'body',
+    'recurrence', 'recurrence_end_date', 'recurrence_interval', 'recurrence_day',
+  ]
+)
+RecurringEventYearlyFixture = namedtuple(
+  'RecurringEventYearlyFixture',
+  [
+    'id', 'change_key', 'subject', 'location', 'start', 'end', 'body',
+    'recurrence', 'recurrence_end_date', 'recurrence_day', 'recurrence_month',
+  ]
+)
 FolderFixture = namedtuple('FolderFixture', ['id', 'change_key', 'display_name', 'parent_id', 'folder_type'])
 
 TEST_FOLDER = FolderFixture(
@@ -49,6 +77,61 @@ TEST_EVENT_MOVED = EventFixture(
   start=datetime(year=2050, month=5, day=20, hour=20, minute=42, second=50, tzinfo=utc),
   end=datetime(year=2050, month=5, day=20, hour=21, minute=43, second=51, tzinfo=utc),
   body=u'rärr ï äm ä dïnösäür'
+)
+
+TEST_RECURRING_EVENT_DAILY = RecurringEventDailyFixture(
+  id=u'AABBCCDDEEFF',
+  change_key=u'GGHHIIJJKKLLMM',
+  subject=u'нyвrιd ѕolαr eclιpѕe',
+  location=u'söüth päċïfïċ (40.1°S 123.7°W)',
+  start=datetime(year=2050, month=5, day=20, hour=20, minute=42, second=50, tzinfo=utc),
+  end=datetime(year=2050, month=5, day=20, hour=21, minute=43, second=51, tzinfo=utc),
+  body=u'rärr ï äm ä dïnösäür',
+  recurrence='daily',
+  recurrence_interval=1,
+  recurrence_end_date=date(year=2050, month=5, day=25),
+)
+
+TEST_RECURRING_EVENT_WEEKLY = RecurringEventWeeklyFixture(
+  id=u'AABBCCDDEEFF',
+  change_key=u'GGHHIIJJKKLLMM',
+  subject=u'нyвrιd ѕolαr eclιpѕe',
+  location=u'söüth päċïfïċ (40.1°S 123.7°W)',
+  start=datetime(year=2050, month=5, day=20, hour=20, minute=42, second=50, tzinfo=utc),
+  end=datetime(year=2050, month=5, day=20, hour=21, minute=43, second=51, tzinfo=utc),
+  body=u'rärr ï äm ä dïnösäür',
+  recurrence='weekly',
+  recurrence_interval=1,
+  recurrence_end_date=date(year=2050, month=5, day=31),
+  recurrence_days='Monday Tuesday Friday',
+)
+
+TEST_RECURRING_EVENT_MONTHLY = RecurringEventMonthlyFixture(
+  id=u'AABBCCDDEEFF',
+  change_key=u'GGHHIIJJKKLLMM',
+  subject=u'нyвrιd ѕolαr eclιpѕe',
+  location=u'söüth päċïfïċ (40.1°S 123.7°W)',
+  start=datetime(year=2050, month=5, day=20, hour=20, minute=42, second=50, tzinfo=utc),
+  end=datetime(year=2050, month=5, day=20, hour=21, minute=43, second=51, tzinfo=utc),
+  body=u'rärr ï äm ä dïnösäür',
+  recurrence='monthly',
+  recurrence_interval=1,
+  recurrence_end_date=date(year=2050, month=7, day=31),
+  recurrence_day=20,
+)
+
+TEST_RECURRING_EVENT_YEARLY = RecurringEventYearlyFixture(
+  id=u'AABBCCDDEEFF',
+  change_key=u'GGHHIIJJKKLLMM',
+  subject=u'нyвrιd ѕolαr eclιpѕe',
+  location=u'söüth päċïfïċ (40.1°S 123.7°W)',
+  start=datetime(year=2050, month=5, day=20, hour=20, minute=42, second=50, tzinfo=utc),
+  end=datetime(year=2050, month=5, day=20, hour=21, minute=43, second=51, tzinfo=utc),
+  body=u'rärr ï äm ä dïnösäür',
+  recurrence='yearly',
+  recurrence_end_date=date(year=2055, month=5, day=31),
+  recurrence_day=20,
+  recurrence_month='May',
 )
 
 NOW = datetime.utcnow().replace(microsecond=0).replace(tzinfo=utc)  # If you don't remove microseconds, it screws with datetime comparisions :/
