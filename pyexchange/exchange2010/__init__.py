@@ -161,8 +161,8 @@ class Exchange2010CalendarEvent(BaseExchangeCalendarEvent):
 
       elif self.recurrence == u'weekly':
 
-        if not (isinstance(self.recurrence_interval, int) and 1 <= self.recurrence_interval <= 999):
-          raise ValueError('recurrence_interval must be an int in the range from 1 to 999')
+        if not (isinstance(self.recurrence_interval, int) and 1 <= self.recurrence_interval <= 99):
+          raise ValueError('recurrence_interval must be an int in the range from 1 to 99')
 
         if self.recurrence_days is None:
           raise ValueError('recurrence_days is required')
