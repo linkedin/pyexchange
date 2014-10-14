@@ -4,8 +4,9 @@ Licensed under the Apache License, Version 2.0 (the "License");?you may not use 
 
 Unless required by applicable law or agreed to in writing, software?distributed under the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 """
+import unittest
 from httpretty import HTTPretty, httprettified
-from nose.tools import eq_, raises
+from pytest import raises
 from pyexchange import Exchange2010Service
 
 from pyexchange.connection import ExchangeNTLMAuthConnection
@@ -13,12 +14,12 @@ from pyexchange.connection import ExchangeNTLMAuthConnection
 from .fixtures import *
 
 
-class Test_MovingAFolder(object):
+class Test_MovingAFolder(unittest.TestCase):
   service = None
   folder = None
 
   @classmethod
-  def setUpAll(self):
+  def setUpClass(self):
     self.service = Exchange2010Service(
       connection=ExchangeNTLMAuthConnection(
         url=FAKE_EXCHANGE_URL,
@@ -39,15 +40,14 @@ class Test_MovingAFolder(object):
 
     self.folder = self.service.folder().get_folder(id=TEST_FOLDER.id)
 
-  @raises(TypeError)
+
   def test_move_empty_folder_id(self):
+    with raises(TypeError):
+      self.folder.move_to(None)
 
-    self.folder.move_to(None)
-
-  @raises(TypeError)
   def test_move_bad_folder_id_type(self):
-
-    self.folder.move_to(self.folder)
+    with raises(TypeError):
+      self.folder.move_to(self.folder)
 
   @httprettified
   def test_move(self):
@@ -60,4 +60,4 @@ class Test_MovingAFolder(object):
     )
 
     self.folder.move_to('AABBCCDDEEFFGG==')
-    eq_(self.folder.parent_id, 'AABBCCDDEEFFGG==')
+    assert self.folder.parent_id == 'AABBCCDDEEFFGG=='

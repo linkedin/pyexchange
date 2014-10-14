@@ -9,4 +9,7 @@ install:
   - pip install -r dev_requirements.txt
 
 # command to run tests
-script:  nosetests tests
+script:  py.test --cov pyexchange tests
+
+after_success:
+    coveralls
