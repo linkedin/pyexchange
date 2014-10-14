@@ -64,8 +64,6 @@ class BaseExchangeCalendarEvent(object):
 
   recurrence = None
   recurrence_end_date = None
-  recurrence_day = None
-  recurrence_days = None
   recurrence_days = None
   recurrence_month = None
 
