@@ -11,8 +11,6 @@ from pyexchange import Exchange2010Service
 from pyexchange.connection import ExchangeNTLMAuthConnection
 
 from .fixtures import *
-from .. import wip
-
 
 class Test_EventDeletion(unittest.TestCase):
   event = None
