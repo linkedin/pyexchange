@@ -14,7 +14,6 @@ from pyexchange.base.calendar import ExchangeEventAttendee
 from pyexchange.exceptions import *
 
 from .fixtures import *
-from .. import wip
 
 class Test_PopulatingANewEvent(unittest.TestCase):
   """ Tests all the attribute setting works when creating a new event """

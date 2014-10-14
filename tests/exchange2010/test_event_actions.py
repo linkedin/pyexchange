@@ -12,7 +12,7 @@ from pyexchange.connection import ExchangeNTLMAuthConnection
 from pyexchange.exceptions import *
 
 from .fixtures import *
-from .. import wip
+
 
 class Test_EventActions(unittest.TestCase):
   event = None
