@@ -65,7 +65,6 @@ class BaseExchangeCalendarEvent(object):
   recurrence = None
   recurrence_end_date = None
   recurrence_days = None
-  recurrence_month = None
 
   _type = None
 
@@ -79,20 +78,14 @@ class BaseExchangeCalendarEvent(object):
   DATA_ATTRIBUTES = [
     u'_id', u'subject', u'start', u'end', u'location', u'html_body', u'text_body', u'organizer',
     u'_attendees', u'_resources', u'reminder_minutes_before_start', u'is_all_day',
-    'recurrence', 'recurrence_interval', 'recurrence_days', 'recurrence_day', 'recurrence_month',
+    'recurrence', 'recurrence_interval', 'recurrence_days', 'recurrence_day',
   ]
 
   RECURRENCE_ATTRIBUTES = [
-    'recurrence', 'recurrence_end_date', 'recurrence_day', 'recurrence_days',
-    'recurrence_month', 'recurrence_interval',
+    'recurrence', 'recurrence_end_date', 'recurrence_days', 'recurrence_interval',
   ]
 
   WEEKLY_DAYS = [u'Sunday', u'Monday', u'Tuesday', u'Wednesday', u'Thursday', u'Friday', u'Saturday']
-
-  MONTHS = [
-    'January', 'February', 'March', 'April', 'May', 'June',
-    'July', 'August', 'September', 'October', 'November', 'December',
-  ]
 
   def __init__(self, service, id=None, xml=None, calendar_id=u'calendar', **kwargs):
     self.service = service

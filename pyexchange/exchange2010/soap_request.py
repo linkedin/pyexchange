@@ -368,7 +368,7 @@ def new_event(event):
     elif event.recurrence == u'yearly':
       recurrence = T.AbsoluteYearlyRecurrence(
         T.DayOfMonth(str(event.start.day)),
-        T.Month(event.recurrence_month),
+        T.Month(event.start.strftime("%B")),
       )
 
     calendar_node.append(
@@ -587,7 +587,7 @@ def update_item(event, updated_attributes, calendar_item_update_operation_type):
         recurrence_node.append(
           T.AbsoluteYearlyRecurrence(
             T.DayOfMonth(str(event.start.day)),
-            T.Month(event.recurrence_month),
+            T.Month(event.start.strftime("%B")),
           )
         )
 

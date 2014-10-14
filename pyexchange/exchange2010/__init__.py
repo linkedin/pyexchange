@@ -167,10 +167,7 @@ class Exchange2010CalendarEvent(BaseExchangeCalendarEvent):
 
       elif self.recurrence == u'yearly':
 
-        if self.recurrence_month is None:
-          raise ValueError('recurrence_month is required')
-        if self.recurrence_month not in self.MONTHS:
-          raise ValueError('recurrence_month received unknown value: %s' % self.recurrence_month)
+        pass  # everything is pulled from start
 
       else:
 
@@ -432,15 +429,6 @@ class Exchange2010CalendarEvent(BaseExchangeCalendarEvent):
       u'recurrence_days':
       {
         u'xpath': u'//m:Items/t:CalendarItem/t:Recurrence/t:WeeklyRecurrence/t:DaysOfWeek',
-      },
-      u'recurrence_day':
-      {
-        u'xpath': u'//m:Items/t:CalendarItem/t:Recurrence/*/t:DayOfMonth',
-        u'cast': u'int',
-      },
-      u'recurrence_month':
-      {
-        u'xpath': u'//m:Items/t:CalendarItem/t:Recurrence/t:AbsoluteYearlyRecurrence/t:Month',
       },
     }
 
