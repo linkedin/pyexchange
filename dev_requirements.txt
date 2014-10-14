@@ -1,5 +1,6 @@
 sphinx
-nose
+pytest
+pytest-cov
 httpretty
 flake8
 
