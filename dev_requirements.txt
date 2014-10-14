@@ -1,5 +1,5 @@
 sphinx
-nose
+pytest
 httpretty
 flake8
 

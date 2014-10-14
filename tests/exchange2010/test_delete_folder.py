@@ -4,19 +4,20 @@ Licensed under the Apache License, Version 2.0 (the "License");?you may not use 
 
 Unless required by applicable law or agreed to in writing, software?distributed under the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 """
+import unittest
 import httpretty
-from nose.tools import eq_, raises
+from pytest import raises
 from pyexchange import Exchange2010Service
 from pyexchange.connection import ExchangeNTLMAuthConnection
 
 from .fixtures import *
 
 
-class Test_FolderDeletion(object):
+class Test_FolderDeletion(unittest.TestCase):
   folder = None
 
   @classmethod
-  def setUpAll(cls):
+  def setUpClass(cls):
     cls.service = Exchange2010Service(
       connection=ExchangeNTLMAuthConnection(
         url=FAKE_EXCHANGE_URL,
@@ -60,9 +61,8 @@ class Test_FolderDeletion(object):
     )
 
     response = self.folder.delete()
-    eq_(response, None)
+    assert response is None
 
-  @raises(TypeError)
   @httpretty.activate
   def test_cant_delete_a_uncreated_folder(self):
     httpretty.register_uri(
@@ -74,4 +74,6 @@ class Test_FolderDeletion(object):
       ]
     )
     unsaved_folder = self.service.folder().new_folder()
-    unsaved_folder.delete()  # bzzt - can't do this
+
+    with raises(TypeError):
+      unsaved_folder.delete()  # bzzt - can't do this

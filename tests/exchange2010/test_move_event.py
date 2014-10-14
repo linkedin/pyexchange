@@ -4,8 +4,9 @@ Licensed under the Apache License, Version 2.0 (the "License");?you may not use 
 
 Unless required by applicable law or agreed to in writing, software?distributed under the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 """
+import unittest
 from httpretty import HTTPretty, httprettified
-from nose.tools import eq_, raises
+from pytest import raises
 from pyexchange import Exchange2010Service
 
 from pyexchange.connection import ExchangeNTLMAuthConnection
@@ -13,12 +14,12 @@ from pyexchange.connection import ExchangeNTLMAuthConnection
 from .fixtures import *
 
 
-class Test_MovingAnEvent(object):
+class Test_MovingAnEvent(unittest.TestCase):
   service = None
   event = None
 
   @classmethod
-  def setUpAll(cls):
+  def setUpClass(cls):
     cls.service = Exchange2010Service(
       connection=ExchangeNTLMAuthConnection(
         url=FAKE_EXCHANGE_URL,
@@ -39,13 +40,13 @@ class Test_MovingAnEvent(object):
 
     self.event = self.service.calendar().get_event(id=TEST_EVENT.id)
 
-  @raises(TypeError)
   def test_move_empty_folder_id(self):
-    self.event.move_to(None)
+    with raises(TypeError):
+      self.event.move_to(None)
 
-  @raises(TypeError)
   def test_move_bad_folder_id_type(self):
-    self.event.move_to(self.event)
+    with raises(TypeError):
+      self.event.move_to(self.event)
 
   @httprettified
   def test_move(self):
@@ -58,5 +59,5 @@ class Test_MovingAnEvent(object):
     )
 
     self.event.move_to('AAAhKSe7AAA=')
-    eq_(self.event.calendar_id, 'AAAhKSe7AAA=')
-    eq_(self.event.id, TEST_EVENT_MOVED.id)
+    assert self.event.calendar_id == 'AAAhKSe7AAA='
+    assert self.event.id == TEST_EVENT_MOVED.id

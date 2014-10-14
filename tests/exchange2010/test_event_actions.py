@@ -4,8 +4,9 @@ Licensed under the Apache License, Version 2.0 (the "License");?you may not use 
 
 Unless required by applicable law or agreed to in writing, software?distributed under the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 """
+import unittest
 from httpretty import HTTPretty, httprettified
-from nose.tools import raises
+from pytest import raises
 from pyexchange import Exchange2010Service
 from pyexchange.connection import ExchangeNTLMAuthConnection
 from pyexchange.exceptions import *
@@ -13,11 +14,11 @@ from pyexchange.exceptions import *
 from .fixtures import *
 from .. import wip
 
-class Test_EventActions(object):
+class Test_EventActions(unittest.TestCase):
   event = None
 
   @classmethod
-  def setUpAll(cls):
+  def setUpClass(cls):
     cls.service = Exchange2010Service(connection=ExchangeNTLMAuthConnection(url=FAKE_EXCHANGE_URL, username=FAKE_EXCHANGE_USERNAME, password=FAKE_EXCHANGE_PASSWORD))
     cls.get_change_key_response = HTTPretty.Response(body=GET_ITEM_RESPONSE_ID_ONLY.encode('utf-8'), status=200, content_type='text/xml; charset=utf-8')
     cls.update_event_response   = HTTPretty.Response(body=UPDATE_ITEM_RESPONSE.encode('utf-8'), status=200, content_type='text/xml; charset=utf-8')
@@ -44,8 +45,6 @@ class Test_EventActions(object):
     assert TEST_EVENT.change_key in HTTPretty.last_request.body.decode('utf-8')
     assert TEST_EVENT.subject not in HTTPretty.last_request.body.decode('utf-8')
 
-
-  @raises(ValueError)
   @httprettified
   def test_cant_resend_invites_on_a_modified_event(self):
     HTTPretty.register_uri(HTTPretty.POST, FAKE_EXCHANGE_URL,
@@ -55,4 +54,6 @@ class Test_EventActions(object):
                             ])
 
     self.event.subject = u'New event thing'
-    self.event.resend_invitations()
+
+    with raises(ValueError):
+      self.event.resend_invitations()
