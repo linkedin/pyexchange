@@ -1,3 +1,5 @@
+[![Build Status](https://travis-ci.org/linkedin/pyexchange.svg)](https://travis-ci.org/linkedin/pyexchange)
+
 PyExchange
 ===================
 
