@@ -4,8 +4,9 @@ Licensed under the Apache License, Version 2.0 (the "License");?you may not use 
 
 Unless required by applicable law or agreed to in writing, software?distributed under the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 """
+import unittest
+from pytest import raises
 from httpretty import HTTPretty, httprettified
-from nose.tools import eq_, raises
 from pyexchange import Exchange2010Service
 
 from pyexchange.connection import ExchangeNTLMAuthConnection
@@ -14,12 +15,12 @@ from pyexchange.exceptions import *  # noqa
 from .fixtures import *  # noqa
 
 
-class Test_PopulatingANewRecurringDailyEvent():
+class Test_PopulatingANewRecurringDailyEvent(unittest.TestCase):
   """ Tests all the attribute setting works when creating a new event """
   calendar = None
 
   @classmethod
-  def setUpAll(cls):
+  def setUpClass(cls):
 
     cls.calendar = Exchange2010Service(
       connection=ExchangeNTLMAuthConnection(
@@ -35,17 +36,17 @@ class Test_PopulatingANewRecurringDailyEvent():
       recurrence_interval=TEST_RECURRING_EVENT_DAILY.recurrence_interval,
       recurrence_end_date=TEST_RECURRING_EVENT_DAILY.recurrence_end_date,
     )
-    eq_(event.recurrence, TEST_RECURRING_EVENT_DAILY.recurrence)
-    eq_(event.recurrence_interval, TEST_RECURRING_EVENT_DAILY.recurrence_interval)
-    eq_(event.recurrence_end_date, TEST_RECURRING_EVENT_DAILY.recurrence_end_date)
+    assert event.recurrence == TEST_RECURRING_EVENT_DAILY.recurrence
+    assert event.recurrence_interval == TEST_RECURRING_EVENT_DAILY.recurrence_interval
+    assert event.recurrence_end_date == TEST_RECURRING_EVENT_DAILY.recurrence_end_date
 
 
-class Test_CreatingANewRecurringDailyEvent(object):
+class Test_CreatingANewRecurringDailyEvent(unittest.TestCase):
   service = None
   event = None
 
   @classmethod
-  def setUpAll(cls):
+  def setUpClass(cls):
     cls.service = Exchange2010Service(
       connection=ExchangeNTLMAuthConnection(
         url=FAKE_EXCHANGE_URL,
@@ -64,20 +65,20 @@ class Test_CreatingANewRecurringDailyEvent(object):
       recurrence_end_date=TEST_RECURRING_EVENT_DAILY.recurrence_end_date,
     )
 
-  @raises(ValueError)
   def test_recurrence_must_have_interval(self):
     self.event.recurrence_interval = None
-    self.event.create()
+    with raises(ValueError):
+      self.event.create()
 
-  @raises(ValueError)
   def test_recurrence_interval_low_value(self):
     self.event.recurrence_interval = 0
-    self.event.create()
+    with raises(ValueError):
+      self.event.create()
 
-  @raises(ValueError)
   def test_recurrence_interval_high_value(self):
     self.event.recurrence_interval = 1000
-    self.event.create()
+    with raises(ValueError):
+      self.event.create()
 
   @httprettified
   def test_recurrence_interval_min_value(self):
@@ -88,7 +89,7 @@ class Test_CreatingANewRecurringDailyEvent(object):
     )
     self.event.recurrence_interval = 1
     self.event.create()
-    eq_(self.event.id, TEST_RECURRING_EVENT_DAILY.id)
+    assert self.event.id == TEST_RECURRING_EVENT_DAILY.id
 
   @httprettified
   def test_recurrence_interval_max_value(self):
@@ -99,17 +100,17 @@ class Test_CreatingANewRecurringDailyEvent(object):
     )
     self.event.recurrence_interval = 999
     self.event.create()
-    eq_(self.event.id, TEST_RECURRING_EVENT_DAILY.id)
+    assert self.event.id == TEST_RECURRING_EVENT_DAILY.id
 
-  @raises(ValueError)
   def test_recurrence_must_have_end_date(self):
     self.event.recurrence_end_date = None
-    self.event.create()
+    with raises(ValueError):
+      self.event.create()
 
-  @raises(ValueError)
   def test_recurrence_end_before_start(self):
     self.event.recurrence_end_date = self.event.start.date() - timedelta(1)
-    self.event.create()
+    with raises(ValueError):
+      self.event.create()
 
   @httprettified
   def test_create_recurrence_daily(self):
@@ -119,15 +120,15 @@ class Test_CreatingANewRecurringDailyEvent(object):
       content_type='text/xml; charset=utf-8',
     )
     self.event.create()
-    eq_(self.event.id, TEST_RECURRING_EVENT_DAILY.id)
+    assert self.event.id == TEST_RECURRING_EVENT_DAILY.id
 
 
-class Test_PopulatingANewRecurringWeeklyEvent():
+class Test_PopulatingANewRecurringWeeklyEvent(unittest.TestCase):
   """ Tests all the attribute setting works when creating a new event """
   calendar = None
 
   @classmethod
-  def setUpAll(cls):
+  def setUpClass(cls):
 
     cls.calendar = Exchange2010Service(
       connection=ExchangeNTLMAuthConnection(
@@ -144,18 +145,18 @@ class Test_PopulatingANewRecurringWeeklyEvent():
       recurrence_end_date=TEST_RECURRING_EVENT_WEEKLY.recurrence_end_date,
       recurrence_days=TEST_RECURRING_EVENT_WEEKLY.recurrence_days,
     )
-    eq_(event.recurrence, TEST_RECURRING_EVENT_WEEKLY.recurrence)
-    eq_(event.recurrence_interval, TEST_RECURRING_EVENT_WEEKLY.recurrence_interval)
-    eq_(event.recurrence_end_date, TEST_RECURRING_EVENT_WEEKLY.recurrence_end_date)
-    eq_(event.recurrence_days, TEST_RECURRING_EVENT_WEEKLY.recurrence_days)
+    assert event.recurrence == TEST_RECURRING_EVENT_WEEKLY.recurrence
+    assert event.recurrence_interval == TEST_RECURRING_EVENT_WEEKLY.recurrence_interval
+    assert event.recurrence_end_date == TEST_RECURRING_EVENT_WEEKLY.recurrence_end_date
+    assert event.recurrence_days == TEST_RECURRING_EVENT_WEEKLY.recurrence_days
 
 
-class Test_CreatingANewRecurringWeeklyEvent(object):
+class Test_CreatingANewRecurringWeeklyEvent(unittest.TestCase):
   service = None
   event = None
 
   @classmethod
-  def setUpAll(cls):
+  def setUpClass(cls):
     cls.service = Exchange2010Service(
       connection=ExchangeNTLMAuthConnection(
         url=FAKE_EXCHANGE_URL,
@@ -175,20 +176,20 @@ class Test_CreatingANewRecurringWeeklyEvent(object):
       recurrence_days=TEST_RECURRING_EVENT_WEEKLY.recurrence_days,
     )
 
-  @raises(ValueError)
   def test_recurrence_must_have_interval(self):
     self.event.recurrence_interval = None
-    self.event.create()
+    with raises(ValueError):
+      self.event.create()
 
-  @raises(ValueError)
   def test_recurrence_interval_low_value(self):
     self.event.recurrence_interval = 0
-    self.event.create()
+    with raises(ValueError):
+      self.event.create()
 
-  @raises(ValueError)
   def test_recurrence_interval_high_value(self):
     self.event.recurrence_interval = 100
-    self.event.create()
+    with raises(ValueError):
+      self.event.create()
 
   @httprettified
   def test_recurrence_interval_min_value(self):
@@ -199,7 +200,7 @@ class Test_CreatingANewRecurringWeeklyEvent(object):
     )
     self.event.recurrence_interval = 1
     self.event.create()
-    eq_(self.event.id, TEST_RECURRING_EVENT_WEEKLY.id)
+    assert self.event.id == TEST_RECURRING_EVENT_WEEKLY.id
 
   @httprettified
   def test_recurrence_interval_max_value(self):
@@ -210,27 +211,27 @@ class Test_CreatingANewRecurringWeeklyEvent(object):
     )
     self.event.recurrence_interval = 99
     self.event.create()
-    eq_(self.event.id, TEST_RECURRING_EVENT_WEEKLY.id)
+    assert self.event.id == TEST_RECURRING_EVENT_WEEKLY.id
 
-  @raises(ValueError)
   def test_recurrence_must_have_end_date(self):
     self.event.recurrence_end_date = None
-    self.event.create()
+    with raises(ValueError):
+      self.event.create()
 
-  @raises(ValueError)
   def test_recurrence_end_before_start(self):
     self.event.recurrence_end_date = self.event.start.date() - timedelta(1)
-    self.event.create()
+    with raises(ValueError):
+      self.event.create()
 
-  @raises(ValueError)
-  def test_recurrence_bad_day(self):
+  def test_recurrence_bad_days(self):
     self.event.recurrence_days = 'Mondays'
-    self.event.create()
+    with raises(ValueError):
+      self.event.create()
 
-  @raises(ValueError)
-  def test_recurrence_no_day(self):
+  def test_recurrence_no_days(self):
     self.event.recurrence_days = None
-    self.event.create()
+    with raises(ValueError):
+      self.event.create()
 
   @httprettified
   def test_create_recurrence_weekly(self):
@@ -240,15 +241,15 @@ class Test_CreatingANewRecurringWeeklyEvent(object):
       content_type='text/xml; charset=utf-8',
     )
     self.event.create()
-    eq_(self.event.id, TEST_RECURRING_EVENT_WEEKLY.id)
+    assert self.event.id == TEST_RECURRING_EVENT_WEEKLY.id
 
 
-class Test_PopulatingANewRecurringMonthlyEvent():
+class Test_PopulatingANewRecurringMonthlyEvent(unittest.TestCase):
   """ Tests all the attribute setting works when creating a new event """
   calendar = None
 
   @classmethod
-  def setUpAll(cls):
+  def setUpClass(cls):
 
     cls.calendar = Exchange2010Service(
       connection=ExchangeNTLMAuthConnection(
@@ -264,17 +265,17 @@ class Test_PopulatingANewRecurringMonthlyEvent():
       recurrence_interval=TEST_RECURRING_EVENT_MONTHLY.recurrence_interval,
       recurrence_end_date=TEST_RECURRING_EVENT_MONTHLY.recurrence_end_date,
     )
-    eq_(event.recurrence, TEST_RECURRING_EVENT_MONTHLY.recurrence)
-    eq_(event.recurrence_interval, TEST_RECURRING_EVENT_MONTHLY.recurrence_interval)
-    eq_(event.recurrence_end_date, TEST_RECURRING_EVENT_MONTHLY.recurrence_end_date)
+    assert event.recurrence == TEST_RECURRING_EVENT_MONTHLY.recurrence
+    assert event.recurrence_interval == TEST_RECURRING_EVENT_MONTHLY.recurrence_interval
+    assert event.recurrence_end_date == TEST_RECURRING_EVENT_MONTHLY.recurrence_end_date
 
 
-class Test_CreatingANewRecurringMonthlyEvent(object):
+class Test_CreatingANewRecurringMonthlyEvent(unittest.TestCase):
   service = None
   event = None
 
   @classmethod
-  def setUpAll(cls):
+  def setUpClass(cls):
     cls.service = Exchange2010Service(
       connection=ExchangeNTLMAuthConnection(
         url=FAKE_EXCHANGE_URL,
@@ -293,20 +294,20 @@ class Test_CreatingANewRecurringMonthlyEvent(object):
       recurrence_end_date=TEST_RECURRING_EVENT_MONTHLY.recurrence_end_date,
     )
 
-  @raises(ValueError)
   def test_recurrence_must_have_interval(self):
     self.event.recurrence_interval = None
-    self.event.create()
+    with raises(ValueError):
+      self.event.create()
 
-  @raises(ValueError)
   def test_recurrence_interval_low_value(self):
     self.event.recurrence_interval = 0
-    self.event.create()
+    with raises(ValueError):
+      self.event.create()
 
-  @raises(ValueError)
   def test_recurrence_interval_high_value(self):
     self.event.recurrence_interval = 100
-    self.event.create()
+    with raises(ValueError):
+      self.event.create()
 
   @httprettified
   def test_recurrence_interval_min_value(self):
@@ -317,7 +318,7 @@ class Test_CreatingANewRecurringMonthlyEvent(object):
     )
     self.event.recurrence_interval = 1
     self.event.create()
-    eq_(self.event.id, TEST_RECURRING_EVENT_MONTHLY.id)
+    assert self.event.id == TEST_RECURRING_EVENT_MONTHLY.id
 
   @httprettified
   def test_recurrence_interval_max_value(self):
@@ -328,17 +329,17 @@ class Test_CreatingANewRecurringMonthlyEvent(object):
     )
     self.event.recurrence_interval = 99
     self.event.create()
-    eq_(self.event.id, TEST_RECURRING_EVENT_MONTHLY.id)
+    assert self.event.id == TEST_RECURRING_EVENT_MONTHLY.id
 
-  @raises(ValueError)
   def test_recurrence_must_have_end_date(self):
     self.event.recurrence_end_date = None
-    self.event.create()
+    with raises(ValueError):
+      self.event.create()
 
-  @raises(ValueError)
   def test_recurrence_end_before_start(self):
     self.event.recurrence_end_date = self.event.start.date() - timedelta(1)
-    self.event.create()
+    with raises(ValueError):
+      self.event.create()
 
   @httprettified
   def test_create_recurrence_monthly(self):
@@ -348,15 +349,15 @@ class Test_CreatingANewRecurringMonthlyEvent(object):
       content_type='text/xml; charset=utf-8',
     )
     self.event.create()
-    eq_(self.event.id, TEST_RECURRING_EVENT_MONTHLY.id)
+    assert self.event.id == TEST_RECURRING_EVENT_MONTHLY.id
 
 
-class Test_PopulatingANewRecurringYearlyEvent():
+class Test_PopulatingANewRecurringYearlyEvent(unittest.TestCase):
   """ Tests all the attribute setting works when creating a new event """
   calendar = None
 
   @classmethod
-  def setUpAll(cls):
+  def setUpClass(cls):
 
     cls.calendar = Exchange2010Service(
       connection=ExchangeNTLMAuthConnection(
@@ -371,16 +372,16 @@ class Test_PopulatingANewRecurringYearlyEvent():
       recurrence=TEST_RECURRING_EVENT_YEARLY.recurrence,
       recurrence_end_date=TEST_RECURRING_EVENT_YEARLY.recurrence_end_date,
     )
-    eq_(event.recurrence, TEST_RECURRING_EVENT_YEARLY.recurrence)
-    eq_(event.recurrence_end_date, TEST_RECURRING_EVENT_YEARLY.recurrence_end_date)
+    event.recurrence == TEST_RECURRING_EVENT_YEARLY.recurrence
+    event.recurrence_end_date == TEST_RECURRING_EVENT_YEARLY.recurrence_end_date
 
 
-class Test_CreatingANewRecurringYearlyEvent(object):
+class Test_CreatingANewRecurringYearlyEvent(unittest.TestCase):
   service = None
   event = None
 
   @classmethod
-  def setUpAll(cls):
+  def setUpClass(cls):
     cls.service = Exchange2010Service(
       connection=ExchangeNTLMAuthConnection(
         url=FAKE_EXCHANGE_URL,
@@ -398,15 +399,15 @@ class Test_CreatingANewRecurringYearlyEvent(object):
       recurrence_end_date=TEST_RECURRING_EVENT_YEARLY.recurrence_end_date,
     )
 
-  @raises(ValueError)
   def test_recurrence_must_have_end_date(self):
     self.event.recurrence_end_date = None
-    self.event.create()
+    with raises(ValueError):
+      self.event.create()
 
-  @raises(ValueError)
   def test_recurrence_end_before_start(self):
     self.event.recurrence_end_date = self.event.start.date() - timedelta(1)
-    self.event.create()
+    with raises(ValueError):
+      self.event.create()
 
   @httprettified
   def test_create_recurrence_yearly(self):
@@ -416,4 +417,4 @@ class Test_CreatingANewRecurringYearlyEvent(object):
       content_type='text/xml; charset=utf-8',
     )
     self.event.create()
-    eq_(self.event.id, TEST_RECURRING_EVENT_YEARLY.id)
+    assert self.event.id == TEST_RECURRING_EVENT_YEARLY.id

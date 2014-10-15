@@ -4,8 +4,9 @@ Licensed under the Apache License, Version 2.0 (the "License");?you may not use 
 
 Unless required by applicable law or agreed to in writing, software?distributed under the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 """
+import unittest
 import httpretty
-from nose.tools import eq_, raises
+from pytest import raises
 from pyexchange import Exchange2010Service
 from pyexchange.connection import ExchangeNTLMAuthConnection
 from pyexchange.exceptions import *
@@ -13,11 +14,11 @@ from pyexchange.exceptions import *
 from .fixtures import *
 
 
-class Test_ParseFolderResponseData(object):
+class Test_ParseFolderResponseData(unittest.TestCase):
   folder = None
 
   @classmethod
-  def setUpAll(cls):
+  def setUpClass(cls):
 
     @httpretty.activate  # this decorator doesn't play nice with @classmethod
     def fake_folder_request():
@@ -51,19 +52,19 @@ class Test_ParseFolderResponseData(object):
 
   def test_folder_has_a_parent(self):
     for folder in self.folder:
-      eq_(folder.parent_id, TEST_FOLDER.id)
+      assert folder.parent_id == TEST_FOLDER.id
 
   def test_folder_type(self):
     for folder in self.folder:
       assert folder is not None
 
 
-class Test_FailingToGetFolders():
+class Test_FailingToGetFolders(unittest.TestCase):
 
   service = None
 
   @classmethod
-  def setUpAll(cls):
+  def setUpClass(cls):
 
     cls.service = Exchange2010Service(
       connection=ExchangeNTLMAuthConnection(
@@ -73,7 +74,6 @@ class Test_FailingToGetFolders():
       )
     )
 
-  @raises(ExchangeItemNotFoundException)
   @httpretty.activate
   def test_requesting_an_folder_id_that_doest_exist_throws_exception(self):
 
@@ -83,9 +83,9 @@ class Test_FailingToGetFolders():
       content_type='text/xml; charset=utf-8',
     )
 
-    self.service.folder().find_folder(parent_id=TEST_FOLDER.id)
+    with raises(ExchangeItemNotFoundException):
+      self.service.folder().find_folder(parent_id=TEST_FOLDER.id)
 
-  @raises(FailedExchangeException)
   @httpretty.activate
   def test_requesting_an_folder_and_getting_a_500_response_throws_exception(self):
 
@@ -97,4 +97,5 @@ class Test_FailingToGetFolders():
       content_type='text/xml; charset=utf-8',
     )
 
-    self.service.folder().find_folder(parent_id=TEST_FOLDER.id)
+    with raises(FailedExchangeException):
+      self.service.folder().find_folder(parent_id=TEST_FOLDER.id)

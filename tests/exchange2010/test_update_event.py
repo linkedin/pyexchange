@@ -4,8 +4,9 @@ Licensed under the Apache License, Version 2.0 (the "License");?you may not use 
 
 Unless required by applicable law or agreed to in writing, software?distributed under the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 """
+import unittest
 from httpretty import HTTPretty, httprettified
-from nose.tools import raises
+from pytest import raises
 from pyexchange import Exchange2010Service
 
 from pyexchange.connection import ExchangeNTLMAuthConnection
@@ -13,12 +14,12 @@ from pyexchange.connection import ExchangeNTLMAuthConnection
 from .fixtures import *  # noqa
 
 
-class Test_UpdatingAnEvent(object):
+class Test_UpdatingAnEvent(unittest.TestCase):
   service = None
   event = None
 
   @classmethod
-  def setUpAll(cls):
+  def setUpClass(cls):
     cls.service = Exchange2010Service(connection=ExchangeNTLMAuthConnection(url=FAKE_EXCHANGE_URL, username=FAKE_EXCHANGE_USERNAME, password=FAKE_EXCHANGE_PASSWORD))
     cls.get_change_key_response = HTTPretty.Response(body=GET_ITEM_RESPONSE_ID_ONLY.encode('utf-8'), status=200, content_type='text/xml; charset=utf-8')
     cls.update_event_response = HTTPretty.Response(body=UPDATE_ITEM_RESPONSE.encode('utf-8'), status=200, content_type='text/xml; charset=utf-8')
@@ -35,20 +36,20 @@ class Test_UpdatingAnEvent(object):
 
     self.event = self.service.calendar().get_event(id=TEST_EVENT.id)
 
-  @raises(ValueError)
   def test_events_must_have_a_start_date(self):
     self.event.start = None
-    self.event.update()
+    with raises(ValueError):
+      self.event.update()
 
-  @raises(ValueError)
   def test_events_must_have_an_end_date(self):
     self.event.start = None
-    self.event.update()
+    with raises(ValueError):
+      self.event.update()
 
-  @raises(ValueError)
   def test_event_end_date_must_come_after_start_date(self):
     self.event.start, self.event.end = self.event.end, self.event.start
-    self.event.update()
+    with raises(ValueError):
+      self.event.update()
 
   @httprettified
   def test_can_set_subject(self):
@@ -186,13 +187,13 @@ class Test_UpdatingAnEvent(object):
     assert PERSON_OPTIONAL_DECLINED.email not in HTTPretty.last_request.body.decode('utf-8')
     assert PERSON_REQUIRED_ACCEPTED.email in HTTPretty.last_request.body.decode('utf-8')
 
-  @raises(ValueError)
   def test_attendees_must_have_an_email_address(self):
-    self.event.attendees = [PERSON_REQUIRED_ACCEPTED.email, None]  # list of email addresses
+    with raises(ValueError):
+      self.event.attendees = [PERSON_REQUIRED_ACCEPTED.email, None]  # list of email addresses
 
-  @raises(ValueError)
   def test_attendee_objects_must_have_an_email_address(self):
-    self.event.attendees = [PERSON_WITH_NO_EMAIL_ADDRESS]
+    with raises(ValueError):
+      self.event.attendees = [PERSON_WITH_NO_EMAIL_ADDRESS]
 
   def test_can_add_attendees_by_email_address(self):
     attendee_count = len(self.event.attendees)
@@ -313,13 +314,13 @@ class Test_UpdatingAnEvent(object):
     assert len(self.event.resources) == resource_count - 1
     assert RESOURCE.email not in [resource.email for resource in self.event.resources]
 
-  @raises(ValueError)
   def test_resources_must_have_an_email_address(self):
-    self.event.resources = [RESOURCE.email, None]
+    with raises(ValueError):
+      self.event.resources = [RESOURCE.email, None]
 
-  @raises(ValueError)
   def test_resource_objects_must_have_an_email_address(self):
-    self.event.resources = [RESOURCE_WITH_NO_EMAIL_ADDRESS]
+    with raises(ValueError):
+      self.event.resources = [RESOURCE_WITH_NO_EMAIL_ADDRESS]
 
   @httprettified
   def test_changes_are_normally_sent_to_everybody(self):
@@ -418,7 +419,6 @@ class Test_UpdatingAnEvent(object):
 
     assert u"SendToChangedAndSaveCopy" in HTTPretty.last_request.body.decode('utf-8')
 
-  @raises(ValueError)
   def test_wrong_update_operation(self):
 
     HTTPretty.register_uri(HTTPretty.POST, FAKE_EXCHANGE_URL,
@@ -428,6 +428,6 @@ class Test_UpdatingAnEvent(object):
                             ])
 
     self.event.resources = [UPDATED_RESOURCE.email]
-    self.event.update(calendar_item_update_operation_type='SendToTheWholeWorld')
-
-    assert u"SendToTheWholeWorld" in HTTPretty.last_request.body.decode('utf-8')
+    with raises(ValueError):
+      self.event.update(calendar_item_update_operation_type='SendToTheWholeWorld')
+      assert u"SendToTheWholeWorld" in HTTPretty.last_request.body.decode('utf-8')
