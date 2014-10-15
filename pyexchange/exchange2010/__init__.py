@@ -37,8 +37,8 @@ class Exchange2010Service(ExchangeServiceSOAP):
 
   def _send_soap_request(self, body, headers=None, retries=2, timeout=30, encoding="utf-8"):
     headers = {
-      "Accept" : "text/xml",
-      "Content-type" : "text/xml; charset=%s " % encoding
+      "Accept": "text/xml",
+      "Content-type": "text/xml; charset=%s " % encoding
     }
     return super(Exchange2010Service, self)._send_soap_request(body, headers=headers, retries=retries, timeout=timeout, encoding=encoding)
 
@@ -89,27 +89,6 @@ class Exchange2010CalendarService(BaseExchangeCalendarService):
 
   def new_event(self, **properties):
     return Exchange2010CalendarEvent(service=self.service, calendar_id=self.calendar_id, **properties)
-
-  def find_event(self, calendar_id, start, end):
-
-    body = soap_request.find_event(calendar_id=calendar_id, start=start, end=end, format=u'IdOnly')
-    response_xml = self.service.send(body)
-    return self._parse_response_for_find_event(response_xml)
-
-  def _parse_response_for_find_event(self, response):
-
-    result = []
-    calendar_items = response.xpath(u'//t:Items/t:CalendarItem/t:ItemId', namespaces=soap_request.NAMESPACES)
-    for item in calendar_items:
-      id = item.get('Id')
-      result.append(
-        Exchange2010CalendarEvent(
-          service=self.service,
-          id=id,
-        )
-      )
-
-    return result
 
 
 class Exchange2010CalendarEvent(BaseExchangeCalendarEvent):

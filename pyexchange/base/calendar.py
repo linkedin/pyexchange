@@ -39,9 +39,6 @@ class BaseExchangeCalendarService(object):
   def new_event(self, **properties):
     raise NotImplementedError
 
-  def find_event(self, calendar_id):
-    raise NotImplementedError
-
 
 class BaseExchangeCalendarEvent(object):
 
