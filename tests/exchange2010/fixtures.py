@@ -6,12 +6,13 @@ Licensed under the Apache License, Version 2.0 (the "License");?you may not use 
 Unless required by applicable law or agreed to in writing, software?distributed under the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 """
 from datetime import datetime, timedelta
+from pytz import utc
 from collections import namedtuple
 from pyexchange.base.calendar import ExchangeEventOrganizer, ExchangeEventResponse, RESPONSE_ACCEPTED, RESPONSE_DECLINED, RESPONSE_TENTATIVE, RESPONSE_UNKNOWN
-from pyexchange.exchange2010.soap_request import EXCHANGE_DATE_FORMAT
+from pyexchange.exchange2010.soap_request import EXCHANGE_DATE_FORMAT  # noqa
 
 # don't remove this - a few tests import stuff this way
-from ..fixtures import *
+from ..fixtures import *  # noqa
 
 EventFixture = namedtuple('EventFixture', ['id', 'change_key', 'subject', 'location', 'start', 'end', 'body'])
 FolderFixture = namedtuple('FolderFixture', ['id', 'change_key', 'display_name', 'parent_id', 'folder_type'])
@@ -28,8 +29,8 @@ TEST_EVENT = EventFixture(id=u'AABBCCDDEEFF',
                           change_key=u'GGHHIIJJKKLLMM',
                           subject=u'нyвrιd ѕolαr eclιpѕe',
                           location=u'söüth päċïfïċ (40.1°S 123.7°W)',
-                          start=datetime(year=2050, month=5, day=20, hour=20, minute=42, second=50),
-                          end=datetime(year=2050, month=5, day=20, hour=21, minute=43, second=51),
+                          start=datetime(year=2050, month=5, day=20, hour=20, minute=42, second=50, tzinfo=utc),
+                          end=datetime(year=2050, month=5, day=20, hour=21, minute=43, second=51, tzinfo=utc),
                           body=u'rärr ï äm ä dïnösäür')
 
 TEST_EVENT_LIST_START=datetime(year=2050, month=4, day=20, hour=20, minute=42, second=50)
@@ -39,19 +40,21 @@ TEST_EVENT_UPDATED = EventFixture(id=u'AABBCCDDEEFF',
                                   change_key=u'XXXXVVV',
                                   subject=u'spärklÿ hämstër sümmër bäll',
                                   location=u'häppÿ fröġ länd',
-                                  start=datetime(year=2040, month=4, day=19, hour=19, minute=41, second=49),
-                                  end=datetime(year=2060, month=4, day=19, hour=20, minute=42, second=50),
+                                  start=datetime(year=2040, month=4, day=19, hour=19, minute=41, second=49, tzinfo=utc),
+                                  end=datetime(year=2060, month=4, day=19, hour=20, minute=42, second=50, tzinfo=utc),
                                   body=u'śő śhíńý śő véŕý śhíńý')
 
-TEST_EVENT_MOVED = EventFixture(id=u'AABBCCDDEEFFAABBCCDDEEFF',
-                          change_key=u'GGHHIIJJKKLLMMGGHHIIJJKKLLMM',
-                          subject=u'нyвrιd ѕolαr eclιpѕe',
-                          location=u'söüth päċïfïċ (40.1°S 123.7°W)',
-                          start=datetime(year=2050, month=5, day=20, hour=20, minute=42, second=50),
-                          end=datetime(year=2050, month=5, day=20, hour=21, minute=43, second=51),
-                          body=u'rärr ï äm ä dïnösäür')
+TEST_EVENT_MOVED = EventFixture(
+  id=u'AABBCCDDEEFFAABBCCDDEEFF',
+  change_key=u'GGHHIIJJKKLLMMGGHHIIJJKKLLMM',
+  subject=u'нyвrιd ѕolαr eclιpѕe',
+  location=u'söüth päċïfïċ (40.1°S 123.7°W)',
+  start=datetime(year=2050, month=5, day=20, hour=20, minute=42, second=50, tzinfo=utc),
+  end=datetime(year=2050, month=5, day=20, hour=21, minute=43, second=51, tzinfo=utc),
+  body=u'rärr ï äm ä dïnösäür'
+)
 
-NOW = datetime.utcnow().replace(microsecond=0)  # If you don't remove microseconds, it screws with datetime comparisions :/
+NOW = datetime.utcnow().replace(microsecond=0).replace(tzinfo=utc)  # If you don't remove microseconds, it screws with datetime comparisions :/
 
 ORGANIZER = ExchangeEventOrganizer(name=u'émmý ńőéthéŕ', email=u'noether@test.linkedin.com')
 

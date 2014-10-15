@@ -4,8 +4,9 @@ Licensed under the Apache License, Version 2.0 (the "License");?you may not use 
 
 Unless required by applicable law or agreed to in writing, software?distributed under the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 """
+import unittest
 from httpretty import HTTPretty, httprettified
-from nose.tools import eq_, raises
+from pytest import raises
 from pyexchange import Exchange2010Service
 
 from pyexchange.connection import ExchangeNTLMAuthConnection
@@ -13,14 +14,13 @@ from pyexchange.base.calendar import ExchangeEventAttendee
 from pyexchange.exceptions import *
 
 from .fixtures import *
-from .. import wip
 
-class Test_PopulatingANewEvent():
+class Test_PopulatingANewEvent(unittest.TestCase):
   """ Tests all the attribute setting works when creating a new event """
   calendar = None
 
   @classmethod
-  def setUpAll(cls):
+  def setUpClass(cls):
 
     cls.calendar =  Exchange2010Service(connection=ExchangeNTLMAuthConnection(url=FAKE_EXCHANGE_URL,
                                                                           username=FAKE_EXCHANGE_USERNAME,
@@ -33,124 +33,130 @@ class Test_PopulatingANewEvent():
 
   def test_events_created_dont_have_an_id(self):
     event = self.calendar.event()
-    eq_(event.id, None)
+    assert event.id is None
 
   def test_can_add_a_subject(self):
     event = self.calendar.event(subject=TEST_EVENT.subject)
-    eq_(event.subject, TEST_EVENT.subject)
+    assert event.subject == TEST_EVENT.subject
 
   def test_can_add_a_location(self):
     event = self.calendar.event(location=TEST_EVENT.location)
-    eq_(event.location, TEST_EVENT.location)
+    assert event.location == TEST_EVENT.location
 
   def test_can_add_an_html_body(self):
     event = self.calendar.event(html_body=TEST_EVENT.body)
-    eq_(event.html_body, TEST_EVENT.body)
-    eq_(event.text_body, None)
-    eq_(event.body, TEST_EVENT.body)
+    assert event.html_body == TEST_EVENT.body
+    assert event.text_body is None
+    assert event.body == TEST_EVENT.body
 
   def test_can_add_a_text_body(self):
     event = self.calendar.event(text_body=TEST_EVENT.body)
-    eq_(event.text_body, TEST_EVENT.body)
-    eq_(event.html_body, None)
-    eq_(event.body, TEST_EVENT.body)
+    assert event.text_body == TEST_EVENT.body
+    assert event.html_body is None
+    assert event.body == TEST_EVENT.body
 
   def test_can_add_a_start_time(self):
     event = self.calendar.event(start=TEST_EVENT.start)
-    eq_(event.start, TEST_EVENT.start)
+    assert event.start == TEST_EVENT.start
 
   def test_can_add_an_end_time(self):
     event = self.calendar.event(end=TEST_EVENT.end)
-    eq_(event.end, TEST_EVENT.end)
+    assert event.end == TEST_EVENT.end
 
   def test_can_add_attendees_via_email(self):
     event = self.calendar.event(attendees=PERSON_REQUIRED_ACCEPTED.email)
-    eq_(len(event.attendees), 1)
-    eq_(len(event.required_attendees), 1)
-    eq_(len(event.optional_attendees), 0)
-    eq_(event.attendees[0].email, PERSON_REQUIRED_ACCEPTED.email)
+    assert len(event.attendees) == 1
+    assert len(event.required_attendees) == 1
+    assert len(event.optional_attendees) == 0
+    assert event.attendees[0].email == PERSON_REQUIRED_ACCEPTED.email
 
   def test_can_add_multiple_attendees_via_email(self):
     event = self.calendar.event(attendees=[PERSON_REQUIRED_ACCEPTED.email, PERSON_REQUIRED_TENTATIVE.email])
-    eq_(len(event.attendees), 2)
-    eq_(len(event.required_attendees), 2)
-    eq_(len(event.optional_attendees), 0)
+    assert len(event.attendees) == 2
+    assert len(event.required_attendees) == 2
+    assert len(event.optional_attendees) == 0
 
   def test_can_add_attendees_via_named_tuple(self):
 
     person = ExchangeEventAttendee(name=PERSON_OPTIONAL_ACCEPTED.name, email=PERSON_OPTIONAL_ACCEPTED.email, required=PERSON_OPTIONAL_ACCEPTED.required)
 
     event = self.calendar.event(attendees=person)
-    eq_(len(event.attendees), 1)
-    eq_(len(event.required_attendees), 0)
-    eq_(len(event.optional_attendees), 1)
-    eq_(event.attendees[0].email, PERSON_OPTIONAL_ACCEPTED.email)
+    assert len(event.attendees) == 1
+    assert len(event.required_attendees) == 0
+    assert len(event.optional_attendees) == 1
+    assert event.attendees[0].email == PERSON_OPTIONAL_ACCEPTED.email
 
   def test_can_assign_to_required_attendees(self):
 
     event = self.calendar.event(attendees=PERSON_REQUIRED_ACCEPTED.email)
     event.required_attendees = [PERSON_REQUIRED_ACCEPTED.email, PERSON_OPTIONAL_ACCEPTED.email]
 
-    eq_(len(event.attendees), 2)
-    eq_(len(event.required_attendees), 2)
-    eq_(len(event.optional_attendees), 0)
+    assert len(event.attendees) == 2
+    assert len(event.required_attendees) == 2
+    assert len(event.optional_attendees) == 0
 
   def test_can_assign_to_optional_attendees(self):
 
     event = self.calendar.event(attendees=PERSON_REQUIRED_ACCEPTED.email)
     event.optional_attendees = PERSON_OPTIONAL_ACCEPTED.email
 
-    eq_(len(event.attendees), 2)
-    eq_(len(event.required_attendees), 1)
-    eq_(len(event.optional_attendees), 1)
-    eq_(event.required_attendees[0].email, PERSON_REQUIRED_ACCEPTED.email)
-    eq_(event.optional_attendees[0].email, PERSON_OPTIONAL_ACCEPTED.email)
+    assert len(event.attendees) == 2
+    assert len(event.required_attendees) == 1
+    assert len(event.optional_attendees) == 1
+    assert event.required_attendees[0].email == PERSON_REQUIRED_ACCEPTED.email
+    assert event.optional_attendees[0].email == PERSON_OPTIONAL_ACCEPTED.email
 
 
   def test_can_add_resources(self):
     event = self.calendar.event(resources=[RESOURCE.email])
-    eq_(len(event.resources), 1)
-    eq_(event.resources[0].email, RESOURCE.email)
-    eq_(event.conference_room.email, RESOURCE.email)
+    assert len(event.resources) == 1
+    assert event.resources[0].email == RESOURCE.email
+    assert event.conference_room.email == RESOURCE.email
 
 
-class Test_CreatingANewEvent(object):
+class Test_CreatingANewEvent(unittest.TestCase):
   service = None
   event = None
 
   @classmethod
-  def setUpAll(cls):
+  def setUpClass(cls):
     cls.service = Exchange2010Service(connection=ExchangeNTLMAuthConnection(url=FAKE_EXCHANGE_URL, username=FAKE_EXCHANGE_USERNAME, password=FAKE_EXCHANGE_PASSWORD))
 
   def setUp(self):
     self.event = self.service.calendar().event(start=TEST_EVENT.start, end=TEST_EVENT.end)
 
-  @raises(ValueError)
   def test_events_must_have_a_start_date(self):
     self.event.start = None
-    self.event.create()
 
-  @raises(ValueError)
+    with raises(ValueError):
+      self.event.create()
+
   def test_events_must_have_an_end_date(self):
     self.event.end = None
-    self.event.create()
 
-  @raises(ValueError)
+    with raises(ValueError):
+     self.event.create()
+
   def test_event_end_date_must_come_after_start_date(self):
     self.event.start, self.event.end = self.event.end, self.event.start
-    self.event.create()
 
-  @raises(ValueError)
+    with raises(ValueError):
+      self.event.create()
+
   def cant_delete_a_newly_created_event(self):
-    self.event.delete()
 
-  @raises(ValueError)
+    with raises(ValueError):
+      self.event.delete()
+
   def cant_update_a_newly_created_event(self):
-    self.event.update()
 
-  @raises(ValueError)
+    with raises(ValueError):
+      self.event.update()
+
   def cant_resend_invites_for_a_newly_created_event(self):
-    self.event.resend_invitations()
+
+    with raises(ValueError):
+      self.event.resend_invitations()
 
   @httprettified
   def test_can_set_subject(self):
@@ -237,7 +243,6 @@ class Test_CreatingANewEvent(object):
     for email in attendees:
       assert email in HTTPretty.last_request.body.decode('utf-8')
 
-  @raises(ValueError)
   def test_resources_must_have_an_email_address(self):
 
     HTTPretty.register_uri(HTTPretty.POST, FAKE_EXCHANGE_URL,
@@ -246,8 +251,9 @@ class Test_CreatingANewEvent(object):
 
     attendees = [PERSON_WITH_NO_EMAIL_ADDRESS]
 
-    self.event.attendees = attendees
-    self.event.create()
+    with raises(ValueError):
+      self.event.attendees = attendees
+      self.event.create()
 
   @httprettified
   def test_resources(self):
