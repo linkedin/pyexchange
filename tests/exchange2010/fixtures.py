@@ -33,6 +33,9 @@ TEST_EVENT = EventFixture(id=u'AABBCCDDEEFF',
                           end=datetime(year=2050, month=5, day=20, hour=21, minute=43, second=51, tzinfo=utc),
                           body=u'rärr ï äm ä dïnösäür')
 
+TEST_EVENT_LIST_START=datetime(year=2050, month=4, day=20, hour=20, minute=42, second=50)
+TEST_EVENT_LIST_END=datetime(year=2050, month=5, day=20, hour=21, minute=43, second=51)
+
 TEST_EVENT_UPDATED = EventFixture(id=u'AABBCCDDEEFF',
                                   change_key=u'XXXXVVV',
                                   subject=u'spärklÿ hämstër sümmër bäll',
@@ -629,3 +632,157 @@ MOVE_FOLDER_RESPONSE = u"""<?xml version="1.0" encoding="utf-8" ?>
     </MoveFolderResponse>
   </soap:Body>
 </soap:Envelope>""".format(folder=TEST_FOLDER)
+
+LIST_EVENTS_RESPONSE = u"""<s:Envelope xmlns:s="http://schemas.xmlsoap.org/soap/envelope/">
+  <s:Header>
+    <h:ServerVersionInfo xmlns:h="http://schemas.microsoft.com/exchange/services/2006/types"
+                         xmlns="http://schemas.microsoft.com/exchange/services/2006/types"
+                         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                         xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+                         MajorVersion="14" MinorVersion="3" MajorBuildNumber="181" MinorBuildNumber="6"/>  </s:Header>
+  <s:Body xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+    <m:FindItemResponse xmlns:m="http://schemas.microsoft.com/exchange/services/2006/messages" xmlns:t="http://schemas.microsoft.com/exchange/services/2006/types">
+      <m:ResponseMessages>
+        <m:FindItemResponseMessage ResponseClass="Success">
+          <m:ResponseCode>NoError</m:ResponseCode>
+          <m:RootFolder TotalItemsInView="42" IncludesLastItemInRange="true">
+            <t:Items>
+              <t:CalendarItem>
+                <t:ItemId Id="id1" ChangeKey="ck1"/>
+                <t:ItemClass>IPM.Appointment.Occurrence</t:ItemClass>
+                <t:Subject>Event Subject 1</t:Subject>
+                <t:Sensitivity>Normal</t:Sensitivity>
+                <t:DateTimeReceived>2050-04-22T01:01:01Z</t:DateTimeReceived>
+                <t:Size>114026</t:Size>
+                <t:Importance>Normal</t:Importance>
+                <t:IsSubmitted>false</t:IsSubmitted>
+                <t:IsDraft>false</t:IsDraft>
+                <t:IsFromMe>false</t:IsFromMe>
+                <t:IsResend>false</t:IsResend>
+                <t:IsUnmodified>false</t:IsUnmodified>
+                <t:ReminderMinutesBeforeStart>15</t:ReminderMinutesBeforeStart>
+                <t:DisplayCc>Roe, Tim</t:DisplayCc>
+                <t:HasAttachments>false</t:HasAttachments>
+                <t:Culture>en-US</t:Culture>
+                <t:Start>2050-05-01T14:30:00Z</t:Start>
+                <t:End>2050-05-01T16:00:00Z</t:End>
+                <t:IsAllDayEvent>false</t:IsAllDayEvent>
+                <t:LegacyFreeBusyStatus>Busy</t:LegacyFreeBusyStatus>
+                <t:Location>Location1</t:Location>
+                <t:IsMeeting>true</t:IsMeeting>
+                <t:IsCancelled>false</t:IsCancelled>
+                <t:IsRecurring>true</t:IsRecurring>
+                <t:MeetingRequestWasSent>false</t:MeetingRequestWasSent>
+                <t:IsResponseRequested>true</t:IsResponseRequested>
+                <t:CalendarItemType>Occurrence</t:CalendarItemType>
+                <t:MyResponseType>Accept</t:MyResponseType>
+                <t:Organizer>
+                  <t:Mailbox>
+                    <t:Name>Organizing User 1</t:Name>
+                  </t:Mailbox>
+                </t:Organizer>
+                <t:Duration>PT1H30M</t:Duration>
+                <t:TimeZone>(UTC-05:00) Eastern Time (US &amp; Canada)</t:TimeZone>
+                <t:AppointmentReplyTime>2050-04-23T16:39:38Z</t:AppointmentReplyTime>
+                <t:AppointmentSequenceNumber>1</t:AppointmentSequenceNumber>
+                <t:AppointmentState>3</t:AppointmentState>
+              </t:CalendarItem>
+              <t:CalendarItem>
+                <t:ItemId Id="id2" ChangeKey="ck1"/>
+                <t:ParentFolderId Id="parentid1" ChangeKey="ck3"/>
+                <t:ItemClass>IPM.Appointment.Occurrence</t:ItemClass>
+                <t:Subject>Event Subject 2</t:Subject>
+                <t:Sensitivity>Normal</t:Sensitivity>
+                <t:DateTimeReceived>2050-04-05T15:22:06Z</t:DateTimeReceived>
+                <t:Size>4761</t:Size>
+                <t:Importance>Normal</t:Importance>
+                <t:IsSubmitted>false</t:IsSubmitted>
+                <t:IsDraft>false</t:IsDraft>
+                <t:IsFromMe>false</t:IsFromMe>
+                <t:IsResend>false</t:IsResend>
+                <t:IsUnmodified>false</t:IsUnmodified>
+                <t:DateTimeSent>2014-09-05T15:22:06Z</t:DateTimeSent>
+                <t:DateTimeCreated>2014-09-05T15:42:54Z</t:DateTimeCreated>
+                <t:ReminderDueBy>2014-09-09T14:30:00Z</t:ReminderDueBy>
+                <t:ReminderIsSet>true</t:ReminderIsSet>
+                <t:ReminderMinutesBeforeStart>15</t:ReminderMinutesBeforeStart>
+                <t:DisplayCc/>
+                <t:DisplayTo>display1; display2</t:DisplayTo>
+                <t:HasAttachments>false</t:HasAttachments>
+                <t:Culture>en-US</t:Culture>
+                <t:Start>2050-05-01T14:30:00Z</t:Start>
+                <t:End>2050-05-01T14:45:00Z</t:End>
+                <t:IsAllDayEvent>false</t:IsAllDayEvent>
+                <t:LegacyFreeBusyStatus>Busy</t:LegacyFreeBusyStatus>
+                <t:Location>Location2</t:Location>
+                <t:IsMeeting>true</t:IsMeeting>
+                <t:IsCancelled>false</t:IsCancelled>
+                <t:IsRecurring>true</t:IsRecurring>
+                <t:MeetingRequestWasSent>false</t:MeetingRequestWasSent>
+                <t:IsResponseRequested>true</t:IsResponseRequested>
+                <t:CalendarItemType>Occurrence</t:CalendarItemType>
+                <t:MyResponseType>Accept</t:MyResponseType>
+                <t:Organizer>
+                  <t:Mailbox>
+                    <t:Name>Organizer 2</t:Name>
+                  </t:Mailbox>
+                </t:Organizer>
+                <t:Duration>PT15M</t:Duration>
+                <t:TimeZone>(UTC-05:00) Eastern Time (US &amp; Canada)</t:TimeZone>
+                <t:AppointmentReplyTime>2014-09-05T15:42:54Z</t:AppointmentReplyTime>
+                <t:AppointmentSequenceNumber>0</t:AppointmentSequenceNumber>
+                <t:AppointmentState>3</t:AppointmentState>
+              </t:CalendarItem>
+              <t:CalendarItem>
+                <t:ItemId Id="id3" ChangeKey="ck4"/>
+                <t:ParentFolderId Id="parentid2" ChangeKey="ck5"/>
+                <t:ItemClass>IPM.Appointment</t:ItemClass>
+                <t:Subject>Subject 3</t:Subject>
+                <t:Sensitivity>Normal</t:Sensitivity>
+                <t:DateTimeReceived>2014-09-30T15:26:27Z</t:DateTimeReceived>
+                <t:Size>4912</t:Size>
+                <t:Importance>Normal</t:Importance>
+                <t:IsSubmitted>false</t:IsSubmitted>
+                <t:IsDraft>false</t:IsDraft>
+                <t:IsFromMe>false</t:IsFromMe>
+                <t:IsResend>false</t:IsResend>
+                <t:IsUnmodified>false</t:IsUnmodified>
+                <t:DateTimeSent>2014-09-30T15:26:27Z</t:DateTimeSent>
+                <t:DateTimeCreated>2014-09-30T15:37:12Z</t:DateTimeCreated>
+                <t:ReminderDueBy>2014-10-01T17:00:00Z</t:ReminderDueBy>
+                <t:ReminderIsSet>false</t:ReminderIsSet>
+                <t:ReminderMinutesBeforeStart>15</t:ReminderMinutesBeforeStart>
+                <t:DisplayCc/>
+                <t:DisplayTo>display1; display2; display3</t:DisplayTo>
+                <t:HasAttachments>false</t:HasAttachments>
+                <t:Culture>en-US</t:Culture>
+                <t:Start>2050-05-11T17:00:00Z</t:Start>
+                <t:End>2050-05-11T18:00:00Z</t:End>
+                <t:IsAllDayEvent>false</t:IsAllDayEvent>
+                <t:LegacyFreeBusyStatus>Busy</t:LegacyFreeBusyStatus>
+                <t:Location>location 3</t:Location>
+                <t:IsMeeting>true</t:IsMeeting>
+                <t:IsCancelled>false</t:IsCancelled>
+                <t:IsRecurring>false</t:IsRecurring>
+                <t:MeetingRequestWasSent>false</t:MeetingRequestWasSent>
+                <t:IsResponseRequested>true</t:IsResponseRequested>
+                <t:CalendarItemType>Single</t:CalendarItemType>
+                <t:MyResponseType>Accept</t:MyResponseType>
+                <t:Organizer>
+                  <t:Mailbox>
+                    <t:Name>Organizer 3</t:Name>
+                  </t:Mailbox>
+                </t:Organizer>
+                <t:Duration>PT1H</t:Duration>
+                <t:TimeZone>UTC</t:TimeZone>
+                <t:AppointmentReplyTime>2014-09-30T15:37:11Z</t:AppointmentReplyTime>
+                <t:AppointmentSequenceNumber>0</t:AppointmentSequenceNumber>
+                <t:AppointmentState>3</t:AppointmentState>
+              </t:CalendarItem>
+            </t:Items>
+          </m:RootFolder>
+        </m:FindItemResponseMessage>
+      </m:ResponseMessages>
+    </m:FindItemResponse>
+  </s:Body>
+</s:Envelope>"""

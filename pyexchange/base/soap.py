@@ -54,6 +54,7 @@ class ExchangeServiceSOAP(object):
 
     if fault_nodes:
       fault = fault_nodes[0]
+      log.debug(etree.tostring(fault, pretty_print=True))
       raise FailedExchangeException(u"SOAP Fault from Exchange server", fault.text)
 
   def _send_soap_request(self, xml, headers=None, retries=2, timeout=30, encoding="utf-8"):
