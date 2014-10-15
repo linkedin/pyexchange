@@ -263,12 +263,10 @@ class Test_PopulatingANewRecurringMonthlyEvent():
       recurrence=TEST_RECURRING_EVENT_MONTHLY.recurrence,
       recurrence_interval=TEST_RECURRING_EVENT_MONTHLY.recurrence_interval,
       recurrence_end_date=TEST_RECURRING_EVENT_MONTHLY.recurrence_end_date,
-      recurrence_day=TEST_RECURRING_EVENT_MONTHLY.recurrence_day,
     )
     eq_(event.recurrence, TEST_RECURRING_EVENT_MONTHLY.recurrence)
     eq_(event.recurrence_interval, TEST_RECURRING_EVENT_MONTHLY.recurrence_interval)
     eq_(event.recurrence_end_date, TEST_RECURRING_EVENT_MONTHLY.recurrence_end_date)
-    eq_(event.recurrence_day, TEST_RECURRING_EVENT_MONTHLY.recurrence_day)
 
 
 class Test_CreatingANewRecurringMonthlyEvent(object):
@@ -293,7 +291,6 @@ class Test_CreatingANewRecurringMonthlyEvent(object):
       recurrence=TEST_RECURRING_EVENT_MONTHLY.recurrence,
       recurrence_interval=TEST_RECURRING_EVENT_MONTHLY.recurrence_interval,
       recurrence_end_date=TEST_RECURRING_EVENT_MONTHLY.recurrence_end_date,
-      recurrence_day=TEST_RECURRING_EVENT_MONTHLY.recurrence_day,
     )
 
   @raises(ValueError)
@@ -343,16 +340,6 @@ class Test_CreatingANewRecurringMonthlyEvent(object):
     self.event.recurrence_end_date = self.event.start.date() - timedelta(1)
     self.event.create()
 
-  @raises(ValueError)
-  def test_recurrence_bad_day(self):
-    self.event.recurrence_day = 'Mondays'
-    self.event.create()
-
-  @raises(ValueError)
-  def test_recurrence_no_day(self):
-    self.event.recurrence_day = None
-    self.event.create()
-
   @httprettified
   def test_create_recurrence_monthly(self):
     HTTPretty.register_uri(
@@ -383,13 +370,9 @@ class Test_PopulatingANewRecurringYearlyEvent():
     event = self.calendar.event(
       recurrence=TEST_RECURRING_EVENT_YEARLY.recurrence,
       recurrence_end_date=TEST_RECURRING_EVENT_YEARLY.recurrence_end_date,
-      recurrence_day=TEST_RECURRING_EVENT_YEARLY.recurrence_day,
-      recurrence_month=TEST_RECURRING_EVENT_YEARLY.recurrence_month,
     )
     eq_(event.recurrence, TEST_RECURRING_EVENT_YEARLY.recurrence)
     eq_(event.recurrence_end_date, TEST_RECURRING_EVENT_YEARLY.recurrence_end_date)
-    eq_(event.recurrence_day, TEST_RECURRING_EVENT_YEARLY.recurrence_day)
-    eq_(event.recurrence_month, TEST_RECURRING_EVENT_YEARLY.recurrence_month)
 
 
 class Test_CreatingANewRecurringYearlyEvent(object):
@@ -413,8 +396,6 @@ class Test_CreatingANewRecurringYearlyEvent(object):
       end=TEST_RECURRING_EVENT_YEARLY.end,
       recurrence=TEST_RECURRING_EVENT_YEARLY.recurrence,
       recurrence_end_date=TEST_RECURRING_EVENT_YEARLY.recurrence_end_date,
-      recurrence_day=TEST_RECURRING_EVENT_YEARLY.recurrence_day,
-      recurrence_month=TEST_RECURRING_EVENT_YEARLY.recurrence_month,
     )
 
   @raises(ValueError)
@@ -425,26 +406,6 @@ class Test_CreatingANewRecurringYearlyEvent(object):
   @raises(ValueError)
   def test_recurrence_end_before_start(self):
     self.event.recurrence_end_date = self.event.start.date() - timedelta(1)
-    self.event.create()
-
-  @raises(ValueError)
-  def test_recurrence_bad_day(self):
-    self.event.recurrence_day = 'Mondays'
-    self.event.create()
-
-  @raises(ValueError)
-  def test_recurrence_no_day(self):
-    self.event.recurrence_day = None
-    self.event.create()
-
-  @raises(ValueError)
-  def test_recurrence_bad_month(self):
-    self.event.recurrence_month = 'Feb'
-    self.event.create()
-
-  @raises(ValueError)
-  def test_recurrence_no_month(self):
-    self.event.recurrence_month = None
     self.event.create()
 
   @httprettified

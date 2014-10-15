@@ -18,29 +18,29 @@ EventFixture = namedtuple('EventFixture', ['id', 'change_key', 'subject', 'locat
 RecurringEventDailyFixture = namedtuple(
   'RecurringEventDailyFixture',
   [
-    'id', 'change_key', 'subject', 'location', 'start', 'end', 'body',
+    'id', 'change_key', 'calendar_id', 'subject', 'location', 'start', 'end', 'body',
     'recurrence', 'recurrence_end_date', 'recurrence_interval',
   ]
 )
 RecurringEventWeeklyFixture = namedtuple(
   'RecurringEventWeeklyFixture',
   [
-    'id', 'change_key', 'subject', 'location', 'start', 'end', 'body',
+    'id', 'change_key', 'calendar_id', 'subject', 'location', 'start', 'end', 'body',
     'recurrence', 'recurrence_end_date', 'recurrence_interval', 'recurrence_days',
   ]
 )
 RecurringEventMonthlyFixture = namedtuple(
   'RecurringEventMonthlyFixture',
   [
-    'id', 'change_key', 'subject', 'location', 'start', 'end', 'body',
-    'recurrence', 'recurrence_end_date', 'recurrence_interval', 'recurrence_day',
+    'id', 'change_key', 'calendar_id', 'subject', 'location', 'start', 'end', 'body',
+    'recurrence', 'recurrence_end_date', 'recurrence_interval',
   ]
 )
 RecurringEventYearlyFixture = namedtuple(
   'RecurringEventYearlyFixture',
   [
-    'id', 'change_key', 'subject', 'location', 'start', 'end', 'body',
-    'recurrence', 'recurrence_end_date', 'recurrence_day', 'recurrence_month',
+    'id', 'change_key', 'calendar_id', 'subject', 'location', 'start', 'end', 'body',
+    'recurrence', 'recurrence_end_date',
   ]
 )
 FolderFixture = namedtuple('FolderFixture', ['id', 'change_key', 'display_name', 'parent_id', 'folder_type'])
@@ -82,6 +82,7 @@ TEST_EVENT_MOVED = EventFixture(
 TEST_RECURRING_EVENT_DAILY = RecurringEventDailyFixture(
   id=u'AABBCCDDEEFF',
   change_key=u'GGHHIIJJKKLLMM',
+  calendar_id='calendar',
   subject=u'нyвrιd ѕolαr eclιpѕe',
   location=u'söüth päċïfïċ (40.1°S 123.7°W)',
   start=datetime(year=2050, month=5, day=20, hour=20, minute=42, second=50, tzinfo=utc),
@@ -95,6 +96,7 @@ TEST_RECURRING_EVENT_DAILY = RecurringEventDailyFixture(
 TEST_RECURRING_EVENT_WEEKLY = RecurringEventWeeklyFixture(
   id=u'AABBCCDDEEFF',
   change_key=u'GGHHIIJJKKLLMM',
+  calendar_id='calendar',
   subject=u'нyвrιd ѕolαr eclιpѕe',
   location=u'söüth päċïfïċ (40.1°S 123.7°W)',
   start=datetime(year=2050, month=5, day=20, hour=20, minute=42, second=50, tzinfo=utc),
@@ -109,6 +111,7 @@ TEST_RECURRING_EVENT_WEEKLY = RecurringEventWeeklyFixture(
 TEST_RECURRING_EVENT_MONTHLY = RecurringEventMonthlyFixture(
   id=u'AABBCCDDEEFF',
   change_key=u'GGHHIIJJKKLLMM',
+  calendar_id='calendar',
   subject=u'нyвrιd ѕolαr eclιpѕe',
   location=u'söüth päċïfïċ (40.1°S 123.7°W)',
   start=datetime(year=2050, month=5, day=20, hour=20, minute=42, second=50, tzinfo=utc),
@@ -117,12 +120,12 @@ TEST_RECURRING_EVENT_MONTHLY = RecurringEventMonthlyFixture(
   recurrence='monthly',
   recurrence_interval=1,
   recurrence_end_date=date(year=2050, month=7, day=31),
-  recurrence_day=20,
 )
 
 TEST_RECURRING_EVENT_YEARLY = RecurringEventYearlyFixture(
   id=u'AABBCCDDEEFF',
   change_key=u'GGHHIIJJKKLLMM',
+  calendar_id='calendar',
   subject=u'нyвrιd ѕolαr eclιpѕe',
   location=u'söüth päċïfïċ (40.1°S 123.7°W)',
   start=datetime(year=2050, month=5, day=20, hour=20, minute=42, second=50, tzinfo=utc),
@@ -130,8 +133,6 @@ TEST_RECURRING_EVENT_YEARLY = RecurringEventYearlyFixture(
   body=u'rärr ï äm ä dïnösäür',
   recurrence='yearly',
   recurrence_end_date=date(year=2055, month=5, day=31),
-  recurrence_day=20,
-  recurrence_month='May',
 )
 
 NOW = datetime.utcnow().replace(microsecond=0).replace(tzinfo=utc)  # If you don't remove microseconds, it screws with datetime comparisions :/
@@ -378,6 +379,194 @@ GET_ITEM_RESPONSE_ID_ONLY = u"""<soap:Envelope xmlns:soap="http://schemas.xmlsoa
     </GetItemResponse>
   </soap:Body>
 </soap:Envelope>""".format(event=TEST_EVENT)
+
+
+GET_RECURRING_MASTER_DAILY_EVENT = u"""<s:Envelope xmlns:s="http://schemas.xmlsoap.org/soap/envelope/">
+  <s:Header>
+    <h:ServerVersionInfo xmlns:h="http://schemas.microsoft.com/exchange/services/2006/types" xmlns="http://schemas.microsoft.com/exchange/services/2006/types" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" MajorVersion="14" MinorVersion="3" MajorBuildNumber="195" MinorBuildNumber="1"/>
+  </s:Header>
+  <s:Body xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+    <m:GetItemResponse xmlns:m="http://schemas.microsoft.com/exchange/services/2006/messages" xmlns:t="http://schemas.microsoft.com/exchange/services/2006/types">
+      <m:ResponseMessages>
+        <m:GetItemResponseMessage ResponseClass="Success">
+          <m:ResponseCode>NoError</m:ResponseCode>
+          <m:Items>
+            <t:CalendarItem>
+^[OB          <t:ItemId Id="{event.id}" ChangeKey="DwAAABYAAAAKya75lDkfRK4qUlGlFIidAAAErmiT"/>
+              <t:ParentFolderId Id="{event.calendar_id}" ChangeKey="AQAAAA=="/>
+              <t:ItemClass>IPM.Appointment</t:ItemClass>
+              <t:Subject>{event.subject}</t:Subject>
+              <t:Sensitivity>Normal</t:Sensitivity>
+              <t:Body BodyType="HTML">{event.body}</t:Body>
+              <t:Body BodyType="Text">{event.body}</t:Body>
+              <t:DateTimeReceived>{event.start:%Y-%m-%dT%H:%M:%SZ}</t:DateTimeReceived>
+              <t:Size>2527</t:Size>
+              <t:Importance>Normal</t:Importance>
+              <t:IsSubmitted>false</t:IsSubmitted>
+              <t:IsDraft>false</t:IsDraft>
+              <t:IsFromMe>false</t:IsFromMe>
+              <t:IsResend>false</t:IsResend>
+              <t:IsUnmodified>false</t:IsUnmodified>
+              <t:DateTimeSent>{event.start:%Y-%m-%dT%H:%M:%SZ}</t:DateTimeSent>
+              <t:DateTimeCreated>{event.start:%Y-%m-%dT%H:%M:%SZ}</t:DateTimeCreated>
+              <t:ResponseObjects>
+                <t:CancelCalendarItem/>
+                <t:ForwardItem/>
+              </t:ResponseObjects>
+              <t:ReminderIsSet>false</t:ReminderIsSet>
+              <t:ReminderMinutesBeforeStart>15</t:ReminderMinutesBeforeStart>
+              <t:DisplayCc/>
+              <t:DisplayTo/>
+              <t:HasAttachments>false</t:HasAttachments>
+              <t:Culture>en-US</t:Culture>
+              <t:Start>{event.start:%Y-%m-%dT%H:%M:%SZ}</t:Start>
+              <t:End>{event.end:%Y-%m-%dT%H:%M:%SZ}</t:End>
+              <t:IsAllDayEvent>false</t:IsAllDayEvent>
+              <t:LegacyFreeBusyStatus>Busy</t:LegacyFreeBusyStatus>
+              <t:Location>{event.location}</t:Location>
+              <t:IsMeeting>true</t:IsMeeting>
+              <t:IsCancelled>false</t:IsCancelled>
+              <t:MeetingRequestWasSent>false</t:MeetingRequestWasSent>
+              <t:IsResponseRequested>true</t:IsResponseRequested>
+              <t:CalendarItemType>RecurringMaster</t:CalendarItemType>
+              <t:MyResponseType>Organizer</t:MyResponseType>
+              <t:Organizer>
+                <t:Mailbox>
+                  <t:Name>{organizer.name}</t:Name>
+                  <t:EmailAddress>{organizer.email}</t:EmailAddress>
+                  <t:RoutingType>SMTP</t:RoutingType>
+                </t:Mailbox>
+              </t:Organizer>
+              <t:ConflictingMeetingCount>0</t:ConflictingMeetingCount>
+              <t:AdjacentMeetingCount>0</t:AdjacentMeetingCount>
+              <t:Duration>PT2H</t:Duration>
+              <t:TimeZone>(UTC-06:00) Central Time (US &amp; Canada)</t:TimeZone>
+              <t:AppointmentSequenceNumber>0</t:AppointmentSequenceNumber>
+              <t:AppointmentState>1</t:AppointmentState>
+              <t:Recurrence>
+                <t:DailyRecurrence>
+                  <t:Interval>{event.recurrence_interval}</t:Interval>
+                </t:DailyRecurrence>
+                <t:EndDateRecurrence>
+                  <t:StartDate>{event.start:%Y-%m-%d}-05:00</t:StartDate>
+                  <t:EndDate>{event.recurrence_end_date:%Y-%m-%d}-05:00</t:EndDate>
+                </t:EndDateRecurrence>
+              </t:Recurrence>
+            </t:CalendarItem>
+          </m:Items>
+        </m:GetItemResponseMessage>
+      </m:ResponseMessages>
+    </m:GetItemResponse>
+  </s:Body>
+</s:Envelope>""".format(
+  event=TEST_RECURRING_EVENT_DAILY,
+  organizer=ORGANIZER,
+)
+
+GET_RECURRING_MASTER_WEEKLY_EVENT = u"""<s:Envelope xmlns:s="http://schemas.xmlsoap.org/soap/envelope/">
+  <s:Header>
+    <h:ServerVersionInfo xmlns:h="http://schemas.microsoft.com/exchange/services/2006/types" xmlns="http://schemas.microsoft.com/exchange/services/2006/types" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" MajorVersion="14" MinorVersion="3" MajorBuildNumber="195" MinorBuildNumber="1"/>
+  </s:Header>
+  <s:Body xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+    <m:GetItemResponse xmlns:m="http://schemas.microsoft.com/exchange/services/2006/messages" xmlns:t="http://schemas.microsoft.com/exchange/services/2006/types">
+      <m:ResponseMessages>
+        <m:GetItemResponseMessage ResponseClass="Success">
+          <m:ResponseCode>NoError</m:ResponseCode>
+          <m:Items>
+            <t:CalendarItem>
+              <t:ItemId Id="{event.id}" ChangeKey="{event.change_key}"/>
+              <t:ParentFolderId Id="{event.calendar_id}" ChangeKey="AQAAAA=="/>
+              <t:ItemClass>IPM.Appointment</t:ItemClass>
+              <t:Subject>{event.subject}</t:Subject>
+              <t:Sensitivity>Normal</t:Sensitivity>
+              <t:Body BodyType="HTML">{event.body}</t:Body>
+              <t:Body BodyType="Text">{event.body}</t:Body>
+              <t:DateTimeReceived>{event.start:%Y-%m-%dT%H:%M:%SZ}</t:DateTimeReceived>
+              <t:Size>2598</t:Size>
+              <t:Importance>Normal</t:Importance>
+              <t:IsSubmitted>false</t:IsSubmitted>
+              <t:IsDraft>false</t:IsDraft>
+              <t:IsFromMe>false</t:IsFromMe>
+              <t:IsResend>false</t:IsResend>
+              <t:IsUnmodified>false</t:IsUnmodified>
+              <t:DateTimeSent>{event.start:%Y-%m-%dT%H:%M:%SZ}</t:DateTimeSent>
+              <t:DateTimeCreated>{event.start:%Y-%m-%dT%H:%M:%SZ}</t:DateTimeCreated>
+              <t:ResponseObjects>
+                <t:CancelCalendarItem/>
+                <t:ForwardItem/>
+              </t:ResponseObjects>
+              <t:ReminderIsSet>false</t:ReminderIsSet>
+              <t:ReminderMinutesBeforeStart>15</t:ReminderMinutesBeforeStart>
+              <t:DisplayCc/>
+              <t:DisplayTo/>
+              <t:HasAttachments>false</t:HasAttachments>
+              <t:Culture>en-US</t:Culture>
+              <t:Start>{event.start:%Y-%m-%dT%H:%M:%SZ}</t:Start>
+              <t:End>{event.end:%Y-%m-%dT%H:%M:%SZ}</t:End>
+              <t:IsAllDayEvent>false</t:IsAllDayEvent>
+              <t:LegacyFreeBusyStatus>Busy</t:LegacyFreeBusyStatus>
+              <t:Location>{event.location}</t:Location>
+              <t:IsMeeting>true</t:IsMeeting>
+              <t:IsCancelled>false</t:IsCancelled>
+              <t:IsRecurring>false</t:IsRecurring>
+              <t:MeetingRequestWasSent>false</t:MeetingRequestWasSent>
+              <t:IsResponseRequested>true</t:IsResponseRequested>
+              <t:CalendarItemType>RecurringMaster</t:CalendarItemType>
+              <t:MyResponseType>Organizer</t:MyResponseType>
+              <t:Organizer>
+                <t:Mailbox>
+                  <t:Name>CS Calendar</t:Name>
+                  <t:EmailAddress>cscalendar@txstate.edu</t:EmailAddress>
+                  <t:RoutingType>SMTP</t:RoutingType>
+                </t:Mailbox>
+              </t:Organizer>
+              <t:ConflictingMeetingCount>0</t:ConflictingMeetingCount>
+              <t:AdjacentMeetingCount>0</t:AdjacentMeetingCount>
+              <t:Duration>PT1H</t:Duration>
+              <t:TimeZone>(UTC-06:00) Central Time (US &amp; Canada)</t:TimeZone>
+              <t:AppointmentSequenceNumber>0</t:AppointmentSequenceNumber>
+              <t:AppointmentState>1</t:AppointmentState>
+              <t:Recurrence>
+                <t:WeeklyRecurrence>
+                  <t:Interval>{event.recurrence_interval}</t:Interval>
+                  <t:DaysOfWeek>{event.recurrence_days}</t:DaysOfWeek>
+                </t:WeeklyRecurrence>
+                <t:EndDateRecurrence>
+                  <t:StartDate>{event.start:%Y-%m-%d}-05:00</t:StartDate>
+                  <t:EndDate>{event.recurrence_end_date:%Y-%m-%d}-05:00</t:EndDate>
+                </t:EndDateRecurrence>
+              </t:Recurrence>
+              <t:MeetingTimeZone TimeZoneName="Central Standard Time">
+                <t:BaseOffset>PT360M</t:BaseOffset>
+                <t:Standard TimeZoneName="Standard">
+                  <t:Offset>PT0M</t:Offset>
+                  <t:RelativeYearlyRecurrence>
+                    <t:DaysOfWeek>Sunday</t:DaysOfWeek>
+                    <t:DayOfWeekIndex>First</t:DayOfWeekIndex>
+                    <t:Month>November</t:Month>
+                  </t:RelativeYearlyRecurrence>
+                  <t:Time>02:00:00</t:Time>
+                </t:Standard>
+                <t:Daylight TimeZoneName="Daylight">
+                  <t:Offset>-PT60M</t:Offset>
+                  <t:RelativeYearlyRecurrence>
+                    <t:DaysOfWeek>Sunday</t:DaysOfWeek>
+                    <t:DayOfWeekIndex>Second</t:DayOfWeekIndex>
+                    <t:Month>March</t:Month>
+                  </t:RelativeYearlyRecurrence>
+                  <t:Time>02:00:00</t:Time>
+                </t:Daylight>
+              </t:MeetingTimeZone>
+            </t:CalendarItem>
+          </m:Items>
+        </m:GetItemResponseMessage>
+      </m:ResponseMessages>
+    </m:GetItemResponse>
+  </s:Body>
+</s:Envelope>""".format(
+  event=TEST_RECURRING_EVENT_WEEKLY,
+  organizer=ORGANIZER,
+)
 
 
 ITEM_DOES_NOT_EXIST = u"""<s:Envelope xmlns:s="http://schemas.xmlsoap.org/soap/envelope/">

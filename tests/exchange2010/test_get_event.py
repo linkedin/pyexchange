@@ -4,7 +4,7 @@ Licensed under the Apache License, Version 2.0 (the "License");?you may not use 
 
 Unless required by applicable law or agreed to in writing, software?distributed under the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 """
-import httpretty
+from httpretty import HTTPretty, httprettified, activate
 from nose.tools import eq_, raises
 from pyexchange import Exchange2010Service
 from pyexchange.connection import ExchangeNTLMAuthConnection
@@ -19,7 +19,7 @@ class Test_ParseEventResponseData(object):
   @classmethod
   def setUpAll(cls):
 
-    @httpretty.activate  # this decorator doesn't play nice with @classmethod
+    @activate  # this decorator doesn't play nice with @classmethod
     def fake_event_request():
 
       service = Exchange2010Service(
@@ -28,8 +28,8 @@ class Test_ParseEventResponseData(object):
         )
       )
 
-      httpretty.register_uri(
-        httpretty.POST, FAKE_EXCHANGE_URL,
+      HTTPretty.register_uri(
+        HTTPretty.POST, FAKE_EXCHANGE_URL,
         body=GET_ITEM_RESPONSE.encode('utf-8'),
         content_type='text/xml; charset=utf-8',
       )
@@ -112,11 +112,11 @@ class Test_FailingToGetEvents():
     )
 
   @raises(ExchangeItemNotFoundException)
-  @httpretty.activate
+  @activate
   def test_requesting_an_event_id_that_doest_exist_throws_exception(self):
 
-    httpretty.register_uri(
-      httpretty.POST, FAKE_EXCHANGE_URL,
+    HTTPretty.register_uri(
+      HTTPretty.POST, FAKE_EXCHANGE_URL,
       body=ITEM_DOES_NOT_EXIST.encode('utf-8'),
       content_type='text/xml; charset=utf-8',
     )
@@ -124,14 +124,73 @@ class Test_FailingToGetEvents():
     self.service.calendar().get_event(id=TEST_EVENT.id)
 
   @raises(FailedExchangeException)
-  @httpretty.activate
+  @activate
   def test_requesting_an_event_and_getting_a_500_response_throws_exception(self):
 
-    httpretty.register_uri(
-      httpretty.POST, FAKE_EXCHANGE_URL,
+    HTTPretty.register_uri(
+      HTTPretty.POST, FAKE_EXCHANGE_URL,
       body=u"",
       status=500,
       content_type='text/xml; charset=utf-8',
     )
 
     self.service.calendar().get_event(id=TEST_EVENT.id)
+
+
+class Test_GetRecurringMasterEvents(object):
+  service = None
+  event = None
+
+  @classmethod
+  def setUpAll(cls):
+    cls.service = Exchange2010Service(
+      connection=ExchangeNTLMAuthConnection(
+        url=FAKE_EXCHANGE_URL,
+        username=FAKE_EXCHANGE_USERNAME,
+        password=FAKE_EXCHANGE_PASSWORD
+      )
+    )
+
+  @httprettified
+  def test_get_recurring_daily_event(self):
+    HTTPretty.register_uri(
+      HTTPretty.POST, FAKE_EXCHANGE_URL,
+      body=GET_RECURRING_MASTER_DAILY_EVENT.encode('utf-8'),
+      content_type='text/xml; charset=utf-8',
+    )
+    event = self.service.calendar(id=TEST_RECURRING_EVENT_DAILY.calendar_id).get_event(
+      id=TEST_RECURRING_EVENT_DAILY.id
+    )
+    eq_(event.id, TEST_RECURRING_EVENT_DAILY.id)
+    eq_(event.calendar_id, TEST_RECURRING_EVENT_DAILY.calendar_id)
+    eq_(event.subject, TEST_RECURRING_EVENT_DAILY.subject)
+    eq_(event.location, TEST_RECURRING_EVENT_DAILY.location)
+    eq_(event.start, TEST_RECURRING_EVENT_DAILY.start)
+    eq_(event.end, TEST_RECURRING_EVENT_DAILY.end)
+    eq_(event.body, TEST_RECURRING_EVENT_DAILY.body)
+    eq_(event.html_body, TEST_RECURRING_EVENT_DAILY.body)
+    eq_(event.recurrence, TEST_RECURRING_EVENT_DAILY.recurrence)
+    eq_(event.recurrence_interval, TEST_RECURRING_EVENT_DAILY.recurrence_interval)
+    eq_(event.recurrence_end_date, TEST_RECURRING_EVENT_DAILY.recurrence_end_date)
+
+  @httprettified
+  def test_get_recurring_weekly_event(self):
+    HTTPretty.register_uri(
+      HTTPretty.POST, FAKE_EXCHANGE_URL,
+      body=GET_RECURRING_MASTER_WEEKLY_EVENT.encode('utf-8'),
+      content_type='text/xml; charset=utf-8',
+    )
+    event = self.service.calendar(id=TEST_RECURRING_EVENT_WEEKLY.calendar_id).get_event(
+      id=TEST_RECURRING_EVENT_WEEKLY.id
+    )
+    eq_(event.id, TEST_RECURRING_EVENT_WEEKLY.id)
+    eq_(event.calendar_id, TEST_RECURRING_EVENT_WEEKLY.calendar_id)
+    eq_(event.subject, TEST_RECURRING_EVENT_WEEKLY.subject)
+    eq_(event.location, TEST_RECURRING_EVENT_WEEKLY.location)
+    eq_(event.start, TEST_RECURRING_EVENT_WEEKLY.start)
+    eq_(event.end, TEST_RECURRING_EVENT_WEEKLY.end)
+    eq_(event.body, TEST_RECURRING_EVENT_WEEKLY.body)
+    eq_(event.html_body, TEST_RECURRING_EVENT_WEEKLY.body)
+    eq_(event.recurrence, TEST_RECURRING_EVENT_WEEKLY.recurrence)
+    eq_(event.recurrence_interval, TEST_RECURRING_EVENT_WEEKLY.recurrence_interval)
+    eq_(event.recurrence_end_date, TEST_RECURRING_EVENT_WEEKLY.recurrence_end_date)
