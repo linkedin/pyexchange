@@ -97,17 +97,24 @@ def get_item(exchange_id, format=u"Default"):
 
   """
 
+  elements = list()
+  if type(exchange_id) == list:
+    for item in exchange_id:
+      elements.append(T.ItemId(Id=item))
+  else:
+    elements = [T.ItemId(Id=exchange_id)]
+
   root = M.GetItem(
     M.ItemShape(
       T.BaseShape(format)
     ),
     M.ItemIds(
-      T.ItemId(Id=exchange_id)
+      *elements
     )
   )
   return root
 
-def get_items(format=u"Default", start=None, end=None, max_entries=999999):
+def get_calendar_items(format=u"Default", start=None, end=None, max_entries=999999):
   start = start.strftime(EXCHANGE_DATE_FORMAT)
   end = end.strftime(EXCHANGE_DATE_FORMAT)
 

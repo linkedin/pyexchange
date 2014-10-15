@@ -88,25 +88,37 @@ class Exchange2010CalendarService(BaseExchangeCalendarService):
   def new_event(self, **properties):
     return Exchange2010CalendarEvent(service=self.service, calendar_id=self.calendar_id, **properties)
 
-  def list_events(self, start=None, end=None):
-    return Exchange2010CalendarEventList(service=self.service, start=start, end=end)    
+  def list_events(self, start=None, end=None, details=False):
+    return Exchange2010CalendarEventList(service=self.service, start=start, end=end, details=details)
 
 
 class Exchange2010CalendarEventList(object):
   """
   Creates & Stores a list of Exchange2010CalendarEvent items in the "self.events" variable.
   """
-  def __init__(self, service=None, start=None, end=None):
+  def __init__(self, service=None, start=None, end=None, details=False):
     self.service = service
     self.count = 0
     self.start = start
     self.end = end
     self.events = list()
+    self.event_ids = list()
+    self.details = details
 
-    body = soap_request.get_items(format=u'AllProperties', start=self.start, end=self.end)
+    # This request uses a Calendar-specific query between two dates.
+    body = soap_request.get_calendar_items(format=u'AllProperties', start=self.start, end=self.end)
     response_xml = self.service.send(body)
-
     self._parse_response_for_all_events(response_xml)
+
+    # Populate the event ID list, for convenience reasons.
+    for event in self.events:
+      self.event_ids.append(event._id)
+
+    # If we have requested all the details, basically repeat the previous 3 steps,
+    # but instead of start/stop, we have a list of ID fields.
+    if self.details:
+      log.debug(u'Received request for all details, retrieving now!')
+      self.load_all_details()
     return
 
   def _parse_response_for_all_events(self, response):
@@ -120,6 +132,11 @@ class Exchange2010CalendarEventList(object):
       log.debug(u'Found %s items' % self.count)
       
       for item in calendar_items:
+        # Skip matches of CalendarItem that are contained within other CalenderItems, particularly
+        # the fact that "<CalendarItem>" tags are located within "<ConflictingMeetings>"
+        if item.getparent().tag.endswith('ConflictingMeetings'):
+          continue
+
         self._add_event(xml=item)
     else:
       log.debug(u'No calendar items found with search parameters.')
@@ -140,13 +157,19 @@ class Exchange2010CalendarEventList(object):
     This is intended for use when you want to have a completely populated event entry, including
     Organizer & Attendee details.
     """
+    log.debug(u"Loading all details")
     if self.count > 0:
-      new_event_list = list()
-      for event in self.events:
-        new_event_list.append(Exchange2010CalendarEvent(service=self.service, id=event._id))
+      # Now, empty out the events to prevent duplicates!
+      del(self.events[:])
+      
+      # Send the SOAP request with the list of exchange ID values.
+      log.debug(u"Requesting all event details for events: {event_list}".format(event_list=str(self.event_ids)))
+      body = soap_request.get_item(exchange_id=self.event_ids, format=u'AllProperties')
+      response_xml = self.service.send(body)
 
-      self.events = new_event_list
-
+      # Re-parse the results for all the details!
+      self._parse_response_for_all_events(response_xml)
+    
     return self
 
 
@@ -171,8 +194,10 @@ class Exchange2010CalendarEvent(BaseExchangeCalendarEvent):
     log.debug(u'Creating new Exchange2010CalendarEvent object from XML')
     self.xpath_root = u'.'
     properties = self._parse_event_properties(xml)
+
     self._update_properties(properties)
-    self._id = xml.xpath(u'//t:ItemId/@Id', namespaces=soap_request.NAMESPACES)[0]
+    self._id = xml.xpath(u'./t:ItemId/@Id', namespaces=soap_request.NAMESPACES)[0]
+
     log.debug(u'Created new event object with ID: %s' % self._id)
     self._reset_dirty_attributes()
 

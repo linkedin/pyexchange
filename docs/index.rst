@@ -181,8 +181,9 @@ Listing events
 To list events between two dates, simply do:
 
     events = my_calendar.list_events(
-        start=datetime(2014,10,1,11,0,0, tzinfo=timezone("US/Eastern")),
-        end=datetime(2014,10,29,11,0,0, tzinfo=timezone("US/Eastern"))
+        start=datetime(2014, 10, 1, 11, 0, 0, tzinfo=timezone("US/Eastern")),
+        end=datetime(2014, 10, 29, 11, 0, 0, tzinfo=timezone("US/Eastern")),
+        details=True
     )
 
 This will return a list of Event objects that are between start and end. If no results are found, it will return an empty list (it intentionally will not throw an Exception.)
@@ -194,7 +195,7 @@ This will return a list of Event objects that are between start and end. If no r
             subject=event.subject
         )
 
-The default response will have most of the data populated in the Event object. It will not have full details for Organizer or Attendees, due to the response provided by Exchange. If you would like to populate all of these details, call the load_all_details() function, such as:
+The third argument, 'details', is optional. By default (if details is not specified, or details=False), it will return most of the fields within an event. The full details for the Organizer or Attendees field are not populated by default by Exchange. If these fields are required in your usage, then pass details=True with the request to make a second lookup for these values. The further details can also be loaded after the fact using the load_all_details() function, as below:
 
     events = my_calendar.list_events(start, end)
     events.load_all_details()
