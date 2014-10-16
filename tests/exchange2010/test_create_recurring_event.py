@@ -32,11 +32,9 @@ class Test_PopulatingANewRecurringDailyEvent(unittest.TestCase):
 
   def test_can_set_recurring(self):
     event = self.calendar.event(
-      recurrence=TEST_RECURRING_EVENT_DAILY.recurrence,
       recurrence_interval=TEST_RECURRING_EVENT_DAILY.recurrence_interval,
       recurrence_end_date=TEST_RECURRING_EVENT_DAILY.recurrence_end_date,
     )
-    assert event.recurrence == TEST_RECURRING_EVENT_DAILY.recurrence
     assert event.recurrence_interval == TEST_RECURRING_EVENT_DAILY.recurrence_interval
     assert event.recurrence_end_date == TEST_RECURRING_EVENT_DAILY.recurrence_end_date
 
@@ -60,7 +58,7 @@ class Test_CreatingANewRecurringDailyEvent(unittest.TestCase):
       subject=TEST_RECURRING_EVENT_DAILY.subject,
       start=TEST_RECURRING_EVENT_DAILY.start,
       end=TEST_RECURRING_EVENT_DAILY.end,
-      recurrence=TEST_RECURRING_EVENT_DAILY.recurrence,
+      recurrence='daily',
       recurrence_interval=TEST_RECURRING_EVENT_DAILY.recurrence_interval,
       recurrence_end_date=TEST_RECURRING_EVENT_DAILY.recurrence_end_date,
     )
@@ -140,12 +138,10 @@ class Test_PopulatingANewRecurringWeeklyEvent(unittest.TestCase):
 
   def test_can_set_recurring(self):
     event = self.calendar.event(
-      recurrence=TEST_RECURRING_EVENT_WEEKLY.recurrence,
       recurrence_interval=TEST_RECURRING_EVENT_WEEKLY.recurrence_interval,
       recurrence_end_date=TEST_RECURRING_EVENT_WEEKLY.recurrence_end_date,
       recurrence_days=TEST_RECURRING_EVENT_WEEKLY.recurrence_days,
     )
-    assert event.recurrence == TEST_RECURRING_EVENT_WEEKLY.recurrence
     assert event.recurrence_interval == TEST_RECURRING_EVENT_WEEKLY.recurrence_interval
     assert event.recurrence_end_date == TEST_RECURRING_EVENT_WEEKLY.recurrence_end_date
     assert event.recurrence_days == TEST_RECURRING_EVENT_WEEKLY.recurrence_days
@@ -170,7 +166,7 @@ class Test_CreatingANewRecurringWeeklyEvent(unittest.TestCase):
       subject=TEST_RECURRING_EVENT_WEEKLY.subject,
       start=TEST_RECURRING_EVENT_WEEKLY.start,
       end=TEST_RECURRING_EVENT_WEEKLY.end,
-      recurrence=TEST_RECURRING_EVENT_WEEKLY.recurrence,
+      recurrence='weekly',
       recurrence_interval=TEST_RECURRING_EVENT_WEEKLY.recurrence_interval,
       recurrence_end_date=TEST_RECURRING_EVENT_WEEKLY.recurrence_end_date,
       recurrence_days=TEST_RECURRING_EVENT_WEEKLY.recurrence_days,
@@ -261,11 +257,10 @@ class Test_PopulatingANewRecurringMonthlyEvent(unittest.TestCase):
 
   def test_can_set_recurring(self):
     event = self.calendar.event(
-      recurrence=TEST_RECURRING_EVENT_MONTHLY.recurrence,
+      recurrence='monthly',
       recurrence_interval=TEST_RECURRING_EVENT_MONTHLY.recurrence_interval,
       recurrence_end_date=TEST_RECURRING_EVENT_MONTHLY.recurrence_end_date,
     )
-    assert event.recurrence == TEST_RECURRING_EVENT_MONTHLY.recurrence
     assert event.recurrence_interval == TEST_RECURRING_EVENT_MONTHLY.recurrence_interval
     assert event.recurrence_end_date == TEST_RECURRING_EVENT_MONTHLY.recurrence_end_date
 
@@ -289,7 +284,7 @@ class Test_CreatingANewRecurringMonthlyEvent(unittest.TestCase):
       subject=TEST_RECURRING_EVENT_MONTHLY.subject,
       start=TEST_RECURRING_EVENT_MONTHLY.start,
       end=TEST_RECURRING_EVENT_MONTHLY.end,
-      recurrence=TEST_RECURRING_EVENT_MONTHLY.recurrence,
+      recurrence='monthly',
       recurrence_interval=TEST_RECURRING_EVENT_MONTHLY.recurrence_interval,
       recurrence_end_date=TEST_RECURRING_EVENT_MONTHLY.recurrence_end_date,
     )
@@ -369,10 +364,9 @@ class Test_PopulatingANewRecurringYearlyEvent(unittest.TestCase):
 
   def test_can_set_recurring(self):
     event = self.calendar.event(
-      recurrence=TEST_RECURRING_EVENT_YEARLY.recurrence,
+      recurrence='yearly',
       recurrence_end_date=TEST_RECURRING_EVENT_YEARLY.recurrence_end_date,
     )
-    event.recurrence == TEST_RECURRING_EVENT_YEARLY.recurrence
     event.recurrence_end_date == TEST_RECURRING_EVENT_YEARLY.recurrence_end_date
 
 
@@ -395,7 +389,7 @@ class Test_CreatingANewRecurringYearlyEvent(unittest.TestCase):
       subject=TEST_RECURRING_EVENT_YEARLY.subject,
       start=TEST_RECURRING_EVENT_YEARLY.start,
       end=TEST_RECURRING_EVENT_YEARLY.end,
-      recurrence=TEST_RECURRING_EVENT_YEARLY.recurrence,
+      recurrence='yearly',
       recurrence_end_date=TEST_RECURRING_EVENT_YEARLY.recurrence_end_date,
     )
 

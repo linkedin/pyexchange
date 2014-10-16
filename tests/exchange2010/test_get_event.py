@@ -170,7 +170,7 @@ class Test_GetRecurringMasterEvents(unittest.TestCase):
     assert event.end == TEST_RECURRING_EVENT_DAILY.end
     assert event.body == TEST_RECURRING_EVENT_DAILY.body
     assert event.html_body == TEST_RECURRING_EVENT_DAILY.body
-    assert event.recurrence == TEST_RECURRING_EVENT_DAILY.recurrence
+    assert event.recurrence == 'daily'
     assert event.recurrence_interval == TEST_RECURRING_EVENT_DAILY.recurrence_interval
     assert event.recurrence_end_date == TEST_RECURRING_EVENT_DAILY.recurrence_end_date
 
@@ -192,6 +192,49 @@ class Test_GetRecurringMasterEvents(unittest.TestCase):
     assert event.end == TEST_RECURRING_EVENT_WEEKLY.end
     assert event.body == TEST_RECURRING_EVENT_WEEKLY.body
     assert event.html_body == TEST_RECURRING_EVENT_WEEKLY.body
-    assert event.recurrence == TEST_RECURRING_EVENT_WEEKLY.recurrence
+    assert event.recurrence == 'weekly'
     assert event.recurrence_interval == TEST_RECURRING_EVENT_WEEKLY.recurrence_interval
     assert event.recurrence_end_date == TEST_RECURRING_EVENT_WEEKLY.recurrence_end_date
+
+  @httprettified
+  def test_get_recurring_monthly_event(self):
+    HTTPretty.register_uri(
+      HTTPretty.POST, FAKE_EXCHANGE_URL,
+      body=GET_RECURRING_MASTER_MONTHLY_EVENT.encode('utf-8'),
+      content_type='text/xml; charset=utf-8',
+    )
+    event = self.service.calendar(id=TEST_RECURRING_EVENT_MONTHLY.calendar_id).get_event(
+      id=TEST_RECURRING_EVENT_MONTHLY.id
+    )
+    assert event.id == TEST_RECURRING_EVENT_MONTHLY.id
+    assert event.calendar_id == TEST_RECURRING_EVENT_MONTHLY.calendar_id
+    assert event.subject == TEST_RECURRING_EVENT_MONTHLY.subject
+    assert event.location == TEST_RECURRING_EVENT_MONTHLY.location
+    assert event.start == TEST_RECURRING_EVENT_MONTHLY.start
+    assert event.end == TEST_RECURRING_EVENT_MONTHLY.end
+    assert event.body == TEST_RECURRING_EVENT_MONTHLY.body
+    assert event.html_body == TEST_RECURRING_EVENT_MONTHLY.body
+    assert event.recurrence == 'monthly'
+    assert event.recurrence_interval == TEST_RECURRING_EVENT_MONTHLY.recurrence_interval
+    assert event.recurrence_end_date == TEST_RECURRING_EVENT_MONTHLY.recurrence_end_date
+
+  @httprettified
+  def test_get_recurring_yearly_event(self):
+    HTTPretty.register_uri(
+      HTTPretty.POST, FAKE_EXCHANGE_URL,
+      body=GET_RECURRING_MASTER_YEARLY_EVENT.encode('utf-8'),
+      content_type='text/xml; charset=utf-8',
+    )
+    event = self.service.calendar(id=TEST_RECURRING_EVENT_YEARLY.calendar_id).get_event(
+      id=TEST_RECURRING_EVENT_YEARLY.id
+    )
+    assert event.id == TEST_RECURRING_EVENT_YEARLY.id
+    assert event.calendar_id == TEST_RECURRING_EVENT_YEARLY.calendar_id
+    assert event.subject == TEST_RECURRING_EVENT_YEARLY.subject
+    assert event.location == TEST_RECURRING_EVENT_YEARLY.location
+    assert event.start == TEST_RECURRING_EVENT_YEARLY.start
+    assert event.end == TEST_RECURRING_EVENT_YEARLY.end
+    assert event.body == TEST_RECURRING_EVENT_YEARLY.body
+    assert event.html_body == TEST_RECURRING_EVENT_YEARLY.body
+    assert event.recurrence == 'yearly'
+    assert event.recurrence_end_date == TEST_RECURRING_EVENT_YEARLY.recurrence_end_date
