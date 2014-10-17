@@ -12,7 +12,7 @@ except:
 
 setup(
   name='pyexchange',
-  version='0.5-dev',
+  version='0.6-dev',
   url='https://github.com/linkedin/pyexchange',
   license='Apache',
   author='Rachel Sanders',
@@ -26,7 +26,7 @@ setup(
   platforms='any',
   include_package_data=True,
   packages=find_packages('.', exclude=['test*']),
-  install_requires=['lxml', 'pytz', 'python-ntlm'],
+  install_requires=['lxml', 'pytz', 'requests', 'requests-ntlm'],
   classifiers=[
     'Development Status :: 3 - Alpha',
     'Intended Audience :: Developers',

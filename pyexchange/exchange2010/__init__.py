@@ -90,26 +90,109 @@ class Exchange2010CalendarService(BaseExchangeCalendarService):
   def new_event(self, **properties):
     return Exchange2010CalendarEvent(service=self.service, calendar_id=self.calendar_id, **properties)
 
+  def list_events(self, start=None, end=None, details=False):
+    return Exchange2010CalendarEventList(service=self.service, start=start, end=end, details=details)
 
-class Exchange2010CalendarEvent(BaseExchangeCalendarEvent):
 
-  def _init_from_xml(self, xml):
+class Exchange2010CalendarEventList(object):
+  """
+  Creates & Stores a list of Exchange2010CalendarEvent items in the "self.events" variable.
+  """
+  def __init__(self, service=None, start=None, end=None, details=False):
+    self.service = service
+    self.count = 0
+    self.start = start
+    self.end = end
+    self.events = list()
+    self.event_ids = list()
+    self.details = details
 
-    properties = self._parse_response_for_get_event(xml)
-    self._update_properties(properties)
-    self._id, self._change_key = self._parse_id_and_change_key_from_response(xml)
+    # This request uses a Calendar-specific query between two dates.
+    body = soap_request.get_calendar_items(format=u'AllProperties', start=self.start, end=self.end)
+    response_xml = self.service.send(body)
+    self._parse_response_for_all_events(response_xml)
+
+    # Populate the event ID list, for convenience reasons.
+    for event in self.events:
+      self.event_ids.append(event._id)
+
+    # If we have requested all the details, basically repeat the previous 3 steps,
+    # but instead of start/stop, we have a list of ID fields.
+    if self.details:
+      log.debug(u'Received request for all details, retrieving now!')
+      self.load_all_details()
+    return
+
+  def _parse_response_for_all_events(self, response):
+    """
+    This function will retrieve *most* of the event data, excluding Organizer & Attendee details
+    """
+    items = response.xpath(u'//m:FindItemResponseMessage/m:RootFolder/t:Items/t:CalendarItem', namespaces=soap_request.NAMESPACES)
+    if items:
+      self.count = len(items)
+      log.debug(u'Found %s items' % self.count)
+
+      for item in items:
+        self._add_event(xml=soap_request.M.Items(deepcopy(item)))
+    else:
+      log.debug(u'No calendar items found with search parameters.')
 
     return self
 
-  def _init_from_service(self, id):
+  def _add_event(self, xml=None):
+    log.debug(u'Adding new event to all events list.')
+    event = Exchange2010CalendarEvent(service=self.service, xml=xml)
+    log.debug(u'Subject of new event is %s' % event.subject)
+    self.events.append(event)
+    return self
 
+  def load_all_details(self):
+    """
+    This function will execute all the event lookups for known events.
+
+    This is intended for use when you want to have a completely populated event entry, including
+    Organizer & Attendee details.
+    """
+    log.debug(u"Loading all details")
+    if self.count > 0:
+      # Now, empty out the events to prevent duplicates!
+      del(self.events[:])
+
+      # Send the SOAP request with the list of exchange ID values.
+      log.debug(u"Requesting all event details for events: {event_list}".format(event_list=str(self.event_ids)))
+      body = soap_request.get_item(exchange_id=self.event_ids, format=u'AllProperties')
+      response_xml = self.service.send(body)
+
+      # Re-parse the results for all the details!
+      self._parse_response_for_all_events(response_xml)
+
+    return self
+
+
+class Exchange2010CalendarEvent(BaseExchangeCalendarEvent):
+
+  def _init_from_service(self, id):
+    log.debug(u'Creating new Exchange2010CalendarEvent object from ID')
     body = soap_request.get_item(exchange_id=id, format=u'AllProperties')
     response_xml = self.service.send(body)
     properties = self._parse_response_for_get_event(response_xml)
 
     self._update_properties(properties)
     self._id = id
+    log.debug(u'Created new event object with ID: %s' % self._id)
 
+    self._reset_dirty_attributes()
+
+    return self
+
+  def _init_from_xml(self, xml=None):
+    log.debug(u'Creating new Exchange2010CalendarEvent object from XML')
+
+    properties = self._parse_response_for_get_event(xml)
+    self._update_properties(properties)
+    self._id, self._change_key = self._parse_id_and_change_key_from_response(xml)
+
+    log.debug(u'Created new event object with ID: %s' % self._id)
     self._reset_dirty_attributes()
 
     return self

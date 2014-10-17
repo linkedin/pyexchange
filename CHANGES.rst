@@ -54,8 +54,29 @@ Alejandro Ramirez (got-root):
 - More documentation on how to use folders. 
 
 
-Upcoming releases
-------------------
+0.5 (October 15, 2014)
+----------------------
 
-0.5 - Hey did you know that requests can do NTLM? I didn't. This release will be working on moving away from urllib2 & the unmaintained python-ntlm and towards requests (huzzah) and ideally Python 3 support (HUZZAH).
+** This release has a potential backwards incompatible change, see below **
+
+* Pyexchange uses requests under the hood now (@trustrachel)
+
+    Hey did you know that requests can do NTLM? I didn't. The internal connection class now uses requests
+    instead of the clunky urllib2.
+
+    There's a backwards incompatible change if you're subclassing the connection object. Requests doesn't
+    need nearly the crud that urllib2 did, so I changed some of the methods and properties.
+
+    Almost nobody should use this feature, but beware if you do.
+
+* You can get a list of events between two dates. This was a big limitation of the library before, so a huge
+ thank you to Eric Matthews (@ematthews))
+
+* Fixed bug causing retrieved events to not be in UTC. (Thanks to Alejandro Ramirez (@got-root))
+
+* Integrated with travis (finally).
+
+
+
+
 

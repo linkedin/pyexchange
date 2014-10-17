@@ -98,14 +98,40 @@ def get_item(exchange_id, format=u"Default"):
 
   """
 
+  elements = list()
+  if type(exchange_id) == list:
+    for item in exchange_id:
+      elements.append(T.ItemId(Id=item))
+  else:
+    elements = [T.ItemId(Id=exchange_id)]
+
   root = M.GetItem(
     M.ItemShape(
       T.BaseShape(format)
     ),
     M.ItemIds(
-      T.ItemId(Id=exchange_id)
+      *elements
     )
   )
+  return root
+
+def get_calendar_items(format=u"Default", start=None, end=None, max_entries=999999):
+  start = start.strftime(EXCHANGE_DATE_FORMAT)
+  end = end.strftime(EXCHANGE_DATE_FORMAT)
+
+  root = M.FindItem(
+    {u'Traversal': u'Shallow'},
+    M.ItemShape(
+      T.BaseShape(format)
+    ),
+    M.CalendarView({
+      u'MaxEntriesReturned': unicode(max_entries),
+      u'StartDate': start,
+      u'EndDate': end,
+    }),
+    M.ParentFolderIds(T.DistinguishedFolderId(Id=u"calendar")),
+  )
+
   return root
 
 

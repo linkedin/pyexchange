@@ -84,25 +84,25 @@ class BaseExchangeCalendarEvent(object):
 
   WEEKLY_DAYS = [u'Sunday', u'Monday', u'Tuesday', u'Wednesday', u'Thursday', u'Friday', u'Saturday']
 
-  def __init__(self, service, id=None, xml=None, calendar_id=u'calendar', **kwargs):
+  def __init__(self, service, id=None, calendar_id=u'calendar', xml=None, **kwargs):
     self.service = service
     self.calendar_id = calendar_id
 
     if xml is not None:
       self._init_from_xml(xml)
-    if id is None:
+    elif id is None:
       self._update_properties(kwargs)
     else:
       self._init_from_service(id)
 
     self._track_dirty_attributes = True  # magically look for changed attributes
 
-  def _init_from_xml(self, xml):
-    """ Parse xml and create event from it.  Useful for creating events from a previous exchange response. """
-    raise NotImplementedError
-
   def _init_from_service(self, id):
     """ Connect to the Exchange service and grab all the properties out of it. """
+    raise NotImplementedError
+
+  def _init_from_xml(self, xml):
+    """ Using already retrieved XML from Exchange, extract properties out of it. """
     raise NotImplementedError
 
   @property
