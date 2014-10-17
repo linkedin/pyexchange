@@ -238,3 +238,56 @@ class Test_GetRecurringMasterEvents(unittest.TestCase):
     assert event.html_body == TEST_RECURRING_EVENT_YEARLY.body
     assert event.recurrence == 'yearly'
     assert event.recurrence_end_date == TEST_RECURRING_EVENT_YEARLY.recurrence_end_date
+
+
+class Test_GetOccurence(unittest.TestCase):
+  service = None
+  event = None
+
+  @classmethod
+  @httprettified
+  def setUpClass(self):
+    self.service = Exchange2010Service(
+      connection=ExchangeNTLMAuthConnection(
+        url=FAKE_EXCHANGE_URL,
+        username=FAKE_EXCHANGE_USERNAME,
+        password=FAKE_EXCHANGE_PASSWORD
+      )
+    )
+    HTTPretty.register_uri(
+      HTTPretty.POST, FAKE_EXCHANGE_URL,
+      body=GET_RECURRING_MASTER_DAILY_EVENT.encode('utf-8'),
+      content_type='text/xml; charset=utf-8',
+    )
+    self.event = self.service.calendar(id=TEST_RECURRING_EVENT_DAILY.calendar_id).get_event(
+      id=TEST_RECURRING_EVENT_DAILY.id
+    )
+
+  @httprettified
+  def test_get_daily_event_occurrences(self):
+    HTTPretty.register_uri(
+      HTTPretty.POST, FAKE_EXCHANGE_URL,
+      body=GET_DAILY_OCCURRENCES.encode('utf-8'),
+      content_type='text/xml; charset=utf-8',
+    )
+    occurrences = self.event.get_occurrence(range(5))
+    for occ in range(len(occurrences)):
+      assert occurrences[occ].id == TEST_EVENT_DAILY_OCCURRENCES[occ].id
+      assert occurrences[occ].subject == TEST_EVENT_DAILY_OCCURRENCES[occ].subject
+      assert occurrences[occ].location == TEST_EVENT_DAILY_OCCURRENCES[occ].location
+      assert occurrences[occ].start == TEST_EVENT_DAILY_OCCURRENCES[occ].start
+      assert occurrences[occ].end == TEST_EVENT_DAILY_OCCURRENCES[occ].end
+      assert occurrences[occ].body == TEST_EVENT_DAILY_OCCURRENCES[occ].body
+      assert occurrences[occ].calendar_id == TEST_EVENT_DAILY_OCCURRENCES[occ].calendar_id
+      assert occurrences[occ].type == 'Occurrence'
+
+  @httprettified
+  def test_get_daily_event_occurrences_empty(self):
+    HTTPretty.register_uri(
+      HTTPretty.POST, FAKE_EXCHANGE_URL,
+      body=GET_EMPTY_OCCURRENCES.encode('utf-8'),
+      content_type='text/xml; charset=utf-8',
+    )
+    occurrences = self.event.get_occurrence(range(5))
+    assert type(occurrences) == list
+    assert len(occurrences) == 0
