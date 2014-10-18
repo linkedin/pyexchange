@@ -282,6 +282,18 @@ class Test_GetOccurence(unittest.TestCase):
       assert occurrences[occ].type == 'Occurrence'
 
   @httprettified
+  def test_get_daily_event_occurrences_fail_from_occurrence(self):
+    HTTPretty.register_uri(
+      HTTPretty.POST, FAKE_EXCHANGE_URL,
+      body=GET_DAILY_OCCURRENCES.encode('utf-8'),
+      content_type='text/xml; charset=utf-8',
+    )
+    occurrences = self.event.get_occurrence(range(5))
+    for occ in range(len(occurrences)):
+      with raises(InvalidEventType):
+        occurrences[occ].get_occurrence(range(5))
+
+  @httprettified
   def test_get_daily_event_occurrences_empty(self):
     HTTPretty.register_uri(
       HTTPretty.POST, FAKE_EXCHANGE_URL,
@@ -291,3 +303,37 @@ class Test_GetOccurence(unittest.TestCase):
     occurrences = self.event.get_occurrence(range(5))
     assert type(occurrences) == list
     assert len(occurrences) == 0
+
+
+class Test_GetOccurenceFailFromSingle(unittest.TestCase):
+  service = None
+  event = None
+
+  @classmethod
+  @httprettified
+  def setUpClass(self):
+    self.service = Exchange2010Service(
+      connection=ExchangeNTLMAuthConnection(
+        url=FAKE_EXCHANGE_URL,
+        username=FAKE_EXCHANGE_USERNAME,
+        password=FAKE_EXCHANGE_PASSWORD
+      )
+    )
+    HTTPretty.register_uri(
+      HTTPretty.POST, FAKE_EXCHANGE_URL,
+      body=GET_ITEM_RESPONSE.encode('utf-8'),
+      content_type='text/xml; charset=utf-8',
+    )
+    self.event = self.service.calendar().get_event(
+      id=TEST_EVENT.id
+    )
+
+  @httprettified
+  def test_get_daily_event_occurrences_fail(self):
+    HTTPretty.register_uri(
+      HTTPretty.POST, FAKE_EXCHANGE_URL,
+      body=GET_DAILY_OCCURRENCES.encode('utf-8'),
+      content_type='text/xml; charset=utf-8',
+    )
+    with raises(InvalidEventType):
+        self.event.get_occurrence(range(5))
