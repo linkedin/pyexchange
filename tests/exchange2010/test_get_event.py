@@ -305,7 +305,7 @@ class Test_GetOccurence(unittest.TestCase):
     assert len(occurrences) == 0
 
 
-class Test_GetOccurenceFailFromSingle(unittest.TestCase):
+class Test_InvalidEventTypeFromSingle(unittest.TestCase):
   service = None
   event = None
 
@@ -328,12 +328,65 @@ class Test_GetOccurenceFailFromSingle(unittest.TestCase):
       id=TEST_EVENT.id
     )
 
-  @httprettified
   def test_get_daily_event_occurrences_fail(self):
-    HTTPretty.register_uri(
-      HTTPretty.POST, FAKE_EXCHANGE_URL,
-      body=GET_DAILY_OCCURRENCES.encode('utf-8'),
-      content_type='text/xml; charset=utf-8',
-    )
     with raises(InvalidEventType):
         self.event.get_occurrence(range(5))
+
+  def test_get_daily_event_master_fail(self):
+    with raises(InvalidEventType):
+        self.event.get_master()
+
+
+class Test_GetMaster(unittest.TestCase):
+  service = None
+  event = None
+
+  @classmethod
+  @httprettified
+  def setUpClass(self):
+    self.service = Exchange2010Service(
+      connection=ExchangeNTLMAuthConnection(
+        url=FAKE_EXCHANGE_URL,
+        username=FAKE_EXCHANGE_USERNAME,
+        password=FAKE_EXCHANGE_PASSWORD
+      )
+    )
+    HTTPretty.register_uri(
+      HTTPretty.POST, FAKE_EXCHANGE_URL,
+      body=GET_EVENT_OCCURRENCE.encode('utf-8'),
+      content_type='text/xml; charset=utf-8',
+    )
+    self.event = self.service.calendar().get_event(
+      id=TEST_EVENT_DAILY_OCCURRENCES[0].id
+    )
+
+  @httprettified
+  def test_get_master_success(self):
+    HTTPretty.register_uri(
+      HTTPretty.POST, FAKE_EXCHANGE_URL,
+      body=GET_RECURRING_MASTER_DAILY_EVENT.encode('utf-8'),
+      content_type='text/xml; charset=utf-8',
+    )
+    master = self.event.get_master()
+    assert master.id == TEST_RECURRING_EVENT_DAILY.id
+    assert master.calendar_id == TEST_RECURRING_EVENT_DAILY.calendar_id
+    assert master.subject == TEST_RECURRING_EVENT_DAILY.subject
+    assert master.location == TEST_RECURRING_EVENT_DAILY.location
+    assert master.start == TEST_RECURRING_EVENT_DAILY.start
+    assert master.end == TEST_RECURRING_EVENT_DAILY.end
+    assert master.body == TEST_RECURRING_EVENT_DAILY.body
+    assert master.html_body == TEST_RECURRING_EVENT_DAILY.body
+    assert master.recurrence == 'daily'
+    assert master.recurrence_interval == TEST_RECURRING_EVENT_DAILY.recurrence_interval
+    assert master.recurrence_end_date == TEST_RECURRING_EVENT_DAILY.recurrence_end_date
+
+  @httprettified
+  def test_get_master_fail_from_master(self):
+    HTTPretty.register_uri(
+      HTTPretty.POST, FAKE_EXCHANGE_URL,
+      body=GET_RECURRING_MASTER_DAILY_EVENT.encode('utf-8'),
+      content_type='text/xml; charset=utf-8',
+    )
+    master = self.event.get_master()
+    with raises(InvalidEventType):
+      master.get_master()

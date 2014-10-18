@@ -1003,6 +1003,81 @@ GET_DAILY_OCCURRENCES = u"""<s:Envelope xmlns:s="http://schemas.xmlsoap.org/soap
   organizer=ORGANIZER,
 )
 
+GET_EVENT_OCCURRENCE = u"""<s:Envelope xmlns:s="http://schemas.xmlsoap.org/soap/envelope/">
+  <s:Header>
+    <h:ServerVersionInfo xmlns:h="http://schemas.microsoft.com/exchange/services/2006/types" xmlns="http://schemas.microsoft.com/exchange/services/2006/types" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" MajorVersion="14" MinorVersion="3" MajorBuildNumber="195" MinorBuildNumber="1"/>
+  </s:Header>
+  <s:Body xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+    <m:GetItemResponse xmlns:m="http://schemas.microsoft.com/exchange/services/2006/messages" xmlns:t="http://schemas.microsoft.com/exchange/services/2006/types">
+      <m:ResponseMessages>
+        <m:GetItemResponseMessage ResponseClass="Success">
+          <m:ResponseCode>NoError</m:ResponseCode>
+          <m:Items>
+            <t:CalendarItem>
+              <t:ItemId Id="{events[0].id}" ChangeKey="{events[0].change_key}"/>
+              <t:ParentFolderId Id="{events[0].calendar_id}" ChangeKey="AQAAAA=="/>
+              <t:ItemClass>IPM.Appointment.Occurrence</t:ItemClass>
+              <t:Subject>{events[0].subject}</t:Subject>
+              <t:Sensitivity>Normal</t:Sensitivity>
+              <t:Body BodyType="HTML">{events[0].body}</t:Body>
+              <t:Body BodyType="Text">{events[0].body}</t:Body>
+              <t:DateTimeReceived>{events[0].start:%Y-%m-%dT%H:%M:%SZ}</t:DateTimeReceived>
+              <t:Size>2532</t:Size>
+              <t:Importance>Normal</t:Importance>
+              <t:IsSubmitted>false</t:IsSubmitted>
+              <t:IsDraft>false</t:IsDraft>
+              <t:IsFromMe>false</t:IsFromMe>
+              <t:IsResend>false</t:IsResend>
+              <t:IsUnmodified>false</t:IsUnmodified>
+              <t:DateTimeSent>{events[0].start:%Y-%m-%dT%H:%M:%SZ}</t:DateTimeSent>
+              <t:DateTimeCreated>{events[0].start:%Y-%m-%dT%H:%M:%SZ}</t:DateTimeCreated>
+              <t:ResponseObjects>
+                <t:CancelCalendarItem/>
+                <t:ForwardItem/>
+              </t:ResponseObjects>
+              <t:ReminderIsSet>false</t:ReminderIsSet>
+              <t:ReminderMinutesBeforeStart>15</t:ReminderMinutesBeforeStart>
+              <t:DisplayCc/>
+              <t:DisplayTo/>
+              <t:HasAttachments>false</t:HasAttachments>
+              <t:Culture>en-US</t:Culture>
+              <t:Start>{events[0].start:%Y-%m-%dT%H:%M:%SZ}</t:Start>
+              <t:End>{events[0].end:%Y-%m-%dT%H:%M:%SZ}</t:End>
+              <t:OriginalStart>2014-10-15T22:00:00Z</t:OriginalStart>
+              <t:IsAllDayEvent>false</t:IsAllDayEvent>
+              <t:LegacyFreeBusyStatus>Busy</t:LegacyFreeBusyStatus>
+              <t:Location>{events[0].location}</t:Location>
+              <t:IsMeeting>true</t:IsMeeting>
+              <t:IsCancelled>false</t:IsCancelled>
+              <t:IsRecurring>true</t:IsRecurring>
+              <t:MeetingRequestWasSent>false</t:MeetingRequestWasSent>
+              <t:IsResponseRequested>true</t:IsResponseRequested>
+              <t:CalendarItemType>Occurrence</t:CalendarItemType>
+              <t:MyResponseType>Organizer</t:MyResponseType>
+              <t:Organizer>
+                <t:Mailbox>
+                  <t:Name>{organizer.name}</t:Name>
+                  <t:EmailAddress>{organizer.email}</t:EmailAddress>
+                  <t:RoutingType>SMTP</t:RoutingType>
+                </t:Mailbox>
+              </t:Organizer>
+              <t:ConflictingMeetingCount>0</t:ConflictingMeetingCount>
+              <t:AdjacentMeetingCount>0</t:AdjacentMeetingCount>
+              <t:Duration>PT1H</t:Duration>
+              <t:TimeZone>(UTC-06:00) Central Time (US &amp; Canada)</t:TimeZone>
+              <t:AppointmentSequenceNumber>0</t:AppointmentSequenceNumber>
+              <t:AppointmentState>1</t:AppointmentState>
+            </t:CalendarItem>
+          </m:Items>
+        </m:GetItemResponseMessage>
+      </m:ResponseMessages>
+    </m:GetItemResponse>
+  </s:Body>
+</s:Envelope>""".format(
+  events=TEST_EVENT_DAILY_OCCURRENCES,
+  organizer=ORGANIZER,
+)
+
 GET_EMPTY_OCCURRENCES = u"""<s:Envelope xmlns:s="http://schemas.xmlsoap.org/soap/envelope/">
   <s:Header>
     <h:ServerVersionInfo xmlns:h="http://schemas.microsoft.com/exchange/services/2006/types" xmlns="http://schemas.microsoft.com/exchange/services/2006/types" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" MajorVersion="14" MinorVersion="3" MajorBuildNumber="195" MinorBuildNumber="1"/>
