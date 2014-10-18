@@ -9,7 +9,7 @@ import logging
 from ..base.calendar import BaseExchangeCalendarEvent, BaseExchangeCalendarService, ExchangeEventOrganizer, ExchangeEventResponse
 from ..base.folder import BaseExchangeFolder, BaseExchangeFolderService
 from ..base.soap import ExchangeServiceSOAP
-from ..exceptions import FailedExchangeException, ExchangeStaleChangeKeyException, ExchangeItemNotFoundException, ExchangeInternalServerTransientErrorException, ExchangeIrresolvableConflictException
+from ..exceptions import FailedExchangeException, ExchangeStaleChangeKeyException, ExchangeItemNotFoundException, ExchangeInternalServerTransientErrorException, ExchangeIrresolvableConflictException, InvalidEventType
 
 from . import soap_request
 
@@ -377,6 +377,9 @@ class Exchange2010CalendarEvent(BaseExchangeCalendarEvent):
 
   def get_master(self):
 
+    if self.type != 'Occurrence':
+      raise InvalidEventType("get_master method can only be called on a 'Occurrence' event type")
+
     body = soap_request.get_master(exchange_id=self._id, format=u"AllProperties")
     response_xml = self.service.send(body)
 
@@ -386,6 +389,9 @@ class Exchange2010CalendarEvent(BaseExchangeCalendarEvent):
 
     if not all([isinstance(i, int) for i in instance_index]):
       raise TypeError("instance_index must be an interable of type int")
+
+    if self.type != 'RecurringMaster':
+      raise InvalidEventType("get_occurrance method can only be called on a 'RecurringMaster' event type")
 
     body = soap_request.get_occurrence(exchange_id=self._id, instance_index=instance_index, format=u"AllProperties")
     response_xml = self.service.send(body)

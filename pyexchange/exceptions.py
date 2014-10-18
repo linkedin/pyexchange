@@ -38,3 +38,7 @@ class ExchangeInternalServerTransientErrorException(FailedExchangeException):
   """Raised when an internal server error occurs in Exchange and the request can actually be retried."""
   pass
 
+
+class InvalidEventType(Exception):
+  """Raised when a method for an event gets called on the wrong type of event."""
+  pass
