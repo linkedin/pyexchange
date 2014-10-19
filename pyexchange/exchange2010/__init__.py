@@ -376,6 +376,22 @@ class Exchange2010CalendarEvent(BaseExchangeCalendarEvent):
     return self
 
   def get_master(self):
+    """
+      get_master()
+      :raises InvalidEventType: When this method is called on an event that is not a Occurrence type.
+
+      This will return the master event to the occurrence.
+
+      **Examples**::
+
+        event = service.calendar().get_event(id='<event_id>')
+        print event.type  # If it prints out 'Occurrence' then that means we could get the master.
+
+        master = event.get_master()
+        print master.type  # Will print out 'RecurringMaster'.
+
+
+    """
 
     if self.type != 'Occurrence':
       raise InvalidEventType("get_master method can only be called on a 'Occurrence' event type")
@@ -386,6 +402,25 @@ class Exchange2010CalendarEvent(BaseExchangeCalendarEvent):
     return Exchange2010CalendarEvent(service=self.service, xml=response_xml)
 
   def get_occurrence(self, instance_index):
+    """
+      get_occurrence(instance_index)
+      :param iterable instance_index: This should be tuple or list of integers which correspond to occurrences.
+      :raises TypeError: When instance_index is not an iterable of ints.
+      :raises InvalidEventType: When this method is called on an event that is not a RecurringMaster type.
+
+      This will return a list of occurrence events.
+
+      **Examples**::
+
+        master = service.calendar().get_event(id='<event_id>')
+
+        # The following will return the first 20 occurrences in the recurrence.
+        # If there are not 20 occurrences, it will only return what it finds.
+        occurrences = master.get_occurrence(range(1,21))
+        for occurrence in occurrences:
+          print occurrence.start
+
+    """
 
     if not all([isinstance(i, int) for i in instance_index]):
       raise TypeError("instance_index must be an interable of type int")
