@@ -59,6 +59,12 @@ class BaseExchangeCalendarEvent(object):
   reminder_minutes_before_start = None
   is_all_day = None
 
+  recurrence = None
+  recurrence_end_date = None
+  recurrence_days = None
+
+  _type = None
+
   _attendees = {}  # people attending
   _resources = {}  # conference rooms attending
 
@@ -66,8 +72,17 @@ class BaseExchangeCalendarEvent(object):
   _dirty_attributes = set()  # any attributes that have changed, and we need to update in Exchange
 
   # these attributes can be pickled, or output as JSON
-  DATA_ATTRIBUTES = [u'_id', u'subject', u'start', u'end', u'location', u'html_body', u'text_body', u'organizer',
-                     u'_attendees', u'_resources', u'reminder_minutes_before_start', u'is_all_day']
+  DATA_ATTRIBUTES = [
+    u'_id', u'subject', u'start', u'end', u'location', u'html_body', u'text_body', u'organizer',
+    u'_attendees', u'_resources', u'reminder_minutes_before_start', u'is_all_day',
+    'recurrence', 'recurrence_interval', 'recurrence_days', 'recurrence_day',
+  ]
+
+  RECURRENCE_ATTRIBUTES = [
+    'recurrence', 'recurrence_end_date', 'recurrence_days', 'recurrence_interval',
+  ]
+
+  WEEKLY_DAYS = [u'Sunday', u'Monday', u'Tuesday', u'Wednesday', u'Thursday', u'Friday', u'Saturday']
 
   def __init__(self, service, id=None, calendar_id=u'calendar', xml=None, **kwargs):
     self.service = service
@@ -104,6 +119,11 @@ class BaseExchangeCalendarEvent(object):
   def body(self):
     """ **Read-only.** Returns either the html_body or the text_body property, whichever is set. """
     return self.html_body or self.text_body or None
+
+  @property
+  def type(self):
+    """ **Read-only.** This is an attribute pulled from an event in the exchange store. """
+    return self._type
 
   @property
   def attendees(self):
@@ -306,6 +326,12 @@ class BaseExchangeCalendarEvent(object):
     raise NotImplementedError
 
   def resend_invitations(self):
+    raise NotImplementedError
+
+  def get_master(self):
+    raise NotImplementedError
+
+  def get_occurrance(self, instance_index):
     raise NotImplementedError
 
   def as_json(self):
