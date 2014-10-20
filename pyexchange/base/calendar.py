@@ -309,7 +309,7 @@ class BaseExchangeCalendarEvent(object):
       raise ValueError("Event has no end date")
 
     if self.end < self.start:
-      raise ValueError("End date is after start date")
+      raise ValueError("Start date is after end date")
 
     if self.reminder_minutes_before_start and not isinstance(self.reminder_minutes_before_start, int):
       raise TypeError("reminder_minutes_before_start must be of type int")
