@@ -6,10 +6,10 @@ Unless required by applicable law or agreed to in writing, software?distributed 
 """
 import httpretty
 import unittest
+from mock import patch, MagicMock, call
 from pytest import raises
 from pyexchange.connection import ExchangeNTLMAuthConnection
 from pyexchange.exceptions import *
-
 
 from .fixtures import *
 
@@ -36,3 +36,43 @@ class Test_ExchangeNTLMAuthConnection(unittest.TestCase):
     with raises(FailedExchangeException):
       self.connection.send(b'yo')
 
+
+
+def test_connection_is_cached():
+
+  manager = MagicMock()
+
+  with patch('pyexchange.connection.HttpNtlmAuth') as MockHttpNtlmAuth:
+
+    manager.attach_mock(MockHttpNtlmAuth, 'MockHttpNtlmAuth')
+
+    connection = ExchangeNTLMAuthConnection(url=FAKE_EXCHANGE_URL,
+                                                username=FAKE_EXCHANGE_USERNAME,
+                                                password=FAKE_EXCHANGE_PASSWORD)
+
+
+    connection.build_password_manager()
+    connection.build_password_manager()
+
+    # assert we only get called once, after that it's cached
+    manager.MockHttpNtlmAuth.assert_called_once_with(FAKE_EXCHANGE_USERNAME, FAKE_EXCHANGE_PASSWORD)
+
+
+def test_session_is_cached():
+
+  manager = MagicMock()
+
+  with patch('requests.Session') as MockSession:
+
+    manager.attach_mock(MockSession, 'MockSession')
+
+    connection = ExchangeNTLMAuthConnection(url=FAKE_EXCHANGE_URL,
+                                                username=FAKE_EXCHANGE_USERNAME,
+                                                password=FAKE_EXCHANGE_PASSWORD)
+
+
+    connection.build_session()
+    connection.build_session()
+
+    # assert we only get called once, after that it's cached
+    manager.MockSession.assert_called_once_with()
