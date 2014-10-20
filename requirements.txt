@@ -1,4 +1,4 @@
-lxml==3.4.0
-pytz==2014.7
-requests==2.4.1
-requests-ntlm==0.0.3
+lxml
+pytz
+requests
+requests-ntlm
