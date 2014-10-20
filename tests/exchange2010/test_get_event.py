@@ -137,6 +137,18 @@ class Test_FailingToGetEvents(unittest.TestCase):
     with raises(FailedExchangeException):
      self.service.calendar().get_event(id=TEST_EVENT.id)
 
+  @activate
+  def test_requesting_an_event_and_getting_garbage_xml_throws_exception(self):
+
+    HTTPretty.register_uri(
+      HTTPretty.POST, FAKE_EXCHANGE_URL,
+      body=u"<garbage xml",
+      status=200,
+      content_type='text/xml; charset=utf-8',
+    )
+
+    with raises(FailedExchangeException):
+     self.service.calendar().get_event(id=TEST_EVENT.id)
 
 class Test_GetRecurringMasterEvents(unittest.TestCase):
   service = None
