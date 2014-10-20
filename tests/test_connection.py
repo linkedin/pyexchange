@@ -37,8 +37,12 @@ class Test_ExchangeNTLMAuthConnection(unittest.TestCase):
       self.connection.send(b'yo')
 
 
-
+@httpretty.activate
 def test_connection_is_cached():
+
+  httpretty.register_uri(httpretty.POST, FAKE_EXCHANGE_URL,
+                           status=200,
+                           body="", )
 
   manager = MagicMock()
 
@@ -50,17 +54,20 @@ def test_connection_is_cached():
                                                 username=FAKE_EXCHANGE_USERNAME,
                                                 password=FAKE_EXCHANGE_PASSWORD)
 
-
-    connection.build_password_manager()
-    connection.build_password_manager()
+    connection.send("test")
+    connection.send("test again")
 
     # assert we only get called once, after that it's cached
     manager.MockHttpNtlmAuth.assert_called_once_with(FAKE_EXCHANGE_USERNAME, FAKE_EXCHANGE_PASSWORD)
 
-
+@httpretty.activate
 def test_session_is_cached():
 
   manager = MagicMock()
+
+  httpretty.register_uri(httpretty.POST, FAKE_EXCHANGE_URL,
+                           status=200,
+                           body="", )
 
   with patch('requests.Session') as MockSession:
 
@@ -70,9 +77,8 @@ def test_session_is_cached():
                                                 username=FAKE_EXCHANGE_USERNAME,
                                                 password=FAKE_EXCHANGE_PASSWORD)
 
-
-    connection.build_session()
-    connection.build_session()
+    connection.send("test")
+    connection.send("test again")
 
     # assert we only get called once, after that it's cached
     manager.MockSession.assert_called_once_with()
