@@ -16,7 +16,8 @@ NAMESPACES = {u'm': MSG_NS, u't': TYPE_NS, u's': SOAP_NS}
 M = ElementMaker(namespace=MSG_NS, nsmap=NAMESPACES)
 T = ElementMaker(namespace=TYPE_NS, nsmap=NAMESPACES)
 
-EXCHANGE_DATE_FORMAT = u"%Y-%m-%dT%H:%M:%SZ"
+EXCHANGE_DATETIME_FORMAT = u"%Y-%m-%dT%H:%M:%SZ"
+EXCHANGE_DATE_FORMAT = u"%Y-%m-%d"
 
 DISTINGUISHED_IDS = (
   'calendar', 'contacts', 'deleteditems', 'drafts', 'inbox', 'journal', 'notes', 'outbox', 'sentitems',
@@ -131,6 +132,80 @@ def get_calendar_items(format=u"Default", start=None, end=None, max_entries=9999
     M.ParentFolderIds(T.DistinguishedFolderId(Id=u"calendar")),
   )
 
+  return root
+
+
+def get_master(exchange_id, format=u"Default"):
+  """
+    Requests a calendar item from the store.
+
+    exchange_id is the id for this event in the Exchange store.
+
+    format controls how much data you get back from Exchange. Full docs are here, but acceptible values
+    are IdOnly, Default, and AllProperties.
+
+    http://msdn.microsoft.com/en-us/library/aa564509(v=exchg.140).aspx
+
+    <m:GetItem  xmlns:m="http://schemas.microsoft.com/exchange/services/2006/messages"
+            xmlns:t="http://schemas.microsoft.com/exchange/services/2006/types">
+      <m:ItemShape>
+          <t:BaseShape>{format}</t:BaseShape>
+      </m:ItemShape>
+      <m:ItemIds>
+          <t:RecurringMasterItemId OccurrenceId="{exchange_id}"/>
+      </m:ItemIds>
+  </m:GetItem>
+
+  """
+
+  root = M.GetItem(
+    M.ItemShape(
+      T.BaseShape(format)
+    ),
+    M.ItemIds(
+      T.RecurringMasterItemId(OccurrenceId=exchange_id)
+    )
+  )
+  return root
+
+
+def get_occurrence(exchange_id, instance_index, format=u"Default"):
+  """
+    Requests one or more calendar items from the store matching the master & index.
+
+    exchange_id is the id for the master event in the Exchange store.
+
+    format controls how much data you get back from Exchange. Full docs are here, but acceptible values
+    are IdOnly, Default, and AllProperties.
+
+    GetItem Doc:
+    http://msdn.microsoft.com/en-us/library/aa564509(v=exchg.140).aspx
+    OccurrenceItemId Doc:
+    http://msdn.microsoft.com/en-us/library/office/aa580744(v=exchg.150).aspx
+
+    <m:GetItem  xmlns:m="http://schemas.microsoft.com/exchange/services/2006/messages"
+            xmlns:t="http://schemas.microsoft.com/exchange/services/2006/types">
+      <m:ItemShape>
+          <t:BaseShape>{format}</t:BaseShape>
+      </m:ItemShape>
+      <m:ItemIds>
+        {% for index in instance_index %}
+          <t:OccurrenceItemId RecurringMasterId="{exchange_id}" InstanceIndex="{{ index }}"/>
+        {% endfor %}
+      </m:ItemIds>
+    </m:GetItem>
+  """
+
+  root = M.GetItem(
+    M.ItemShape(
+      T.BaseShape(format)
+    ),
+    M.ItemIds()
+  )
+
+  items_node = root.xpath("//m:ItemIds", namespaces=NAMESPACES)[0]
+  for index in instance_index:
+    items_node.append(T.OccurrenceItemId(RecurringMasterId=exchange_id, InstanceIndex=str(index)))
   return root
 
 
@@ -265,8 +340,8 @@ def new_event(event):
   else:
     calendar_node.append(T.ReminderIsSet('false'))
 
-  calendar_node.append(T.Start(start.strftime(EXCHANGE_DATE_FORMAT)))
-  calendar_node.append(T.End(end.strftime(EXCHANGE_DATE_FORMAT)))
+  calendar_node.append(T.Start(start.strftime(EXCHANGE_DATETIME_FORMAT)))
+  calendar_node.append(T.End(end.strftime(EXCHANGE_DATETIME_FORMAT)))
 
   if event.is_all_day:
     calendar_node.append(T.IsAllDayEvent('true'))
@@ -281,6 +356,38 @@ def new_event(event):
 
   if event.resources:
     calendar_node.append(resource_node(element=T.Resources(), resources=event.resources))
+
+  if event.recurrence:
+
+    if event.recurrence == u'daily':
+      recurrence = T.DailyRecurrence(
+        T.Interval(str(event.recurrence_interval)),
+      )
+    elif event.recurrence == u'weekly':
+      recurrence = T.WeeklyRecurrence(
+        T.Interval(str(event.recurrence_interval)),
+        T.DaysOfWeek(event.recurrence_days),
+      )
+    elif event.recurrence == u'monthly':
+      recurrence = T.AbsoluteMonthlyRecurrence(
+        T.Interval(str(event.recurrence_interval)),
+        T.DayOfMonth(str(event.start.day)),
+      )
+    elif event.recurrence == u'yearly':
+      recurrence = T.AbsoluteYearlyRecurrence(
+        T.DayOfMonth(str(event.start.day)),
+        T.Month(event.start.strftime("%B")),
+      )
+
+    calendar_node.append(
+      T.Recurrence(
+        recurrence,
+        T.EndDateRecurrence(
+          T.StartDate(event.start.strftime(EXCHANGE_DATE_FORMAT)),
+          T.EndDate(event.recurrence_end_date.strftime(EXCHANGE_DATE_FORMAT)),
+        )
+      )
+    )
 
   return root
 
@@ -393,14 +500,14 @@ def update_item(event, updated_attributes, calendar_item_update_operation_type):
     start = convert_datetime_to_utc(event.start)
 
     update_node.append(
-      update_property_node(field_uri="calendar:Start", node_to_insert=T.Start(start.strftime(EXCHANGE_DATE_FORMAT)))
+      update_property_node(field_uri="calendar:Start", node_to_insert=T.Start(start.strftime(EXCHANGE_DATETIME_FORMAT)))
     )
 
   if u'end' in updated_attributes:
     end = convert_datetime_to_utc(event.end)
 
     update_node.append(
-      update_property_node(field_uri="calendar:End", node_to_insert=T.End(end.strftime(EXCHANGE_DATE_FORMAT)))
+      update_property_node(field_uri="calendar:End", node_to_insert=T.End(end.strftime(EXCHANGE_DATETIME_FORMAT)))
     )
 
   if u'location' in updated_attributes:
@@ -458,5 +565,49 @@ def update_item(event, updated_attributes, calendar_item_update_operation_type):
     update_node.append(
       update_property_node(field_uri="calendar:IsAllDayEvent", node_to_insert=T.IsAllDayEvent(str(event.is_all_day).lower()))
     )
+
+  for attr in event.RECURRENCE_ATTRIBUTES:
+    if attr in updated_attributes:
+
+      recurrence_node = T.Recurrence()
+
+      if event.recurrence == 'daily':
+        recurrence_node.append(
+          T.DailyRecurrence(
+            T.Interval(str(event.recurrence_interval)),
+          )
+        )
+      elif event.recurrence == 'weekly':
+        recurrence_node.append(
+          T.WeeklyRecurrence(
+            T.Interval(str(event.recurrence_interval)),
+            T.DaysOfWeek(event.recurrence_days),
+          )
+        )
+      elif event.recurrence == 'monthly':
+        recurrence_node.append(
+          T.AbsoluteMonthlyRecurrence(
+            T.Interval(str(event.recurrence_interval)),
+            T.DayOfMonth(str(event.start.day)),
+          )
+        )
+      elif event.recurrence == 'yearly':
+        recurrence_node.append(
+          T.AbsoluteYearlyRecurrence(
+            T.DayOfMonth(str(event.start.day)),
+            T.Month(event.start.strftime("%B")),
+          )
+        )
+
+      recurrence_node.append(
+        T.EndDateRecurrence(
+          T.StartDate(event.start.strftime(EXCHANGE_DATE_FORMAT)),
+          T.EndDate(event.recurrence_end_date.strftime(EXCHANGE_DATE_FORMAT)),
+        )
+      )
+
+      update_node.append(
+        update_property_node(field_uri="calendar:Recurrence", node_to_insert=recurrence_node)
+      )
 
   return root

@@ -7,7 +7,7 @@ Exchange2010CalendarEvent
 =========================
 
 .. autoclass:: Exchange2010CalendarEvent
-    :members: create, update, cancel, resend_invitations, move_to
+    :members: create, update, cancel, resend_invitations, move_to, get_occurrence, get_master
 
     .. attribute:: id
 
@@ -121,6 +121,25 @@ Exchange2010CalendarEvent
           print event.conference_room.email # u'conferenceroom@company.foo'
 
       Returns a :class:`ExchangeEventAttendee` object.
+
+    .. attribute:: recurrence
+
+      A property to set the recurrence type for the event.  Possible values are: 'daily', 'weekly', 'monthly', 'yearly'.
+
+    .. attribute:: recurrence_interval
+
+      A property to set the recurrence interval for the event.  This should be an int and applies to the following types of recurring events: 'daily', 'weekly', 'monthly'.
+      It should be a value between 1 and 999 for 'daily'.
+      It should be a value between 1 and 99 for 'weekly' and 'monthly'.
+
+    .. attribute:: recurrence_end_date
+
+      Should be a datetime.date() object which specifies the end of the recurrence.
+
+    .. attribute:: recurrence_days
+
+      Used in a weekly recurrence to specify which days of the week to schedule the event.  This should be a
+      string of days separated by spaces.  ex. "Monday Wednesday"
 
     .. method:: add_attendee(attendees, required=True)
 

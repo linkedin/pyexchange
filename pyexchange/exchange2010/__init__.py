@@ -4,19 +4,18 @@ Licensed under the Apache License, Version 2.0 (the "License");?you may not use 
 
 Unless required by applicable law or agreed to in writing, software?distributed under the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 """
-# TODO get flake8 to just ignore the lines I want, dangit
-# flake8: noqa
 
 import logging
 from ..base.calendar import BaseExchangeCalendarEvent, BaseExchangeCalendarService, ExchangeEventOrganizer, ExchangeEventResponse
 from ..base.folder import BaseExchangeFolder, BaseExchangeFolderService
 from ..base.soap import ExchangeServiceSOAP
-from ..exceptions import FailedExchangeException, ExchangeStaleChangeKeyException, ExchangeItemNotFoundException, ExchangeInternalServerTransientErrorException, ExchangeIrresolvableConflictException
+from ..exceptions import FailedExchangeException, ExchangeStaleChangeKeyException, ExchangeItemNotFoundException, ExchangeInternalServerTransientErrorException, ExchangeIrresolvableConflictException, InvalidEventType
 
 from . import soap_request
 
 from lxml import etree
-
+from copy import deepcopy
+from datetime import date
 import warnings
 
 log = logging.getLogger("pyexchange")
@@ -38,8 +37,8 @@ class Exchange2010Service(ExchangeServiceSOAP):
 
   def _send_soap_request(self, body, headers=None, retries=2, timeout=30, encoding="utf-8"):
     headers = {
-      "Accept" : "text/xml",
-      "Content-type" : "text/xml; charset=%s " % encoding
+      "Accept": "text/xml",
+      "Content-type": "text/xml; charset=%s " % encoding
     }
     return super(Exchange2010Service, self)._send_soap_request(body, headers=headers, retries=retries, timeout=timeout, encoding=encoding)
 
@@ -73,6 +72,9 @@ class Exchange2010Service(ExchangeServiceSOAP):
       elif code.text == u"ErrorInternalServerTransientError":
         # temporary internal server error. throw a special error so we can retry
         raise ExchangeInternalServerTransientErrorException(u"Exchange Fault (%s) from Exchange server" % code.text)
+      elif code.text == u"ErrorCalendarOccurrenceIndexIsOutOfRecurrenceRange":
+        # just means some or all of the requested instances are out of range
+        pass
       elif code.text != u"NoError":
         raise FailedExchangeException(u"Exchange Fault (%s) from Exchange server" % code.text)
 
@@ -125,24 +127,18 @@ class Exchange2010CalendarEventList(object):
     """
     This function will retrieve *most* of the event data, excluding Organizer & Attendee details
     """
-    calendar_items = response.xpath(u'//t:CalendarItem', namespaces=soap_request.NAMESPACES)
-    counter = 0
-    if calendar_items:
-      self.count = len(calendar_items)
+    items = response.xpath(u'//m:FindItemResponseMessage/m:RootFolder/t:Items/t:CalendarItem', namespaces=soap_request.NAMESPACES)
+    if items:
+      self.count = len(items)
       log.debug(u'Found %s items' % self.count)
-      
-      for item in calendar_items:
-        # Skip matches of CalendarItem that are contained within other CalenderItems, particularly
-        # the fact that "<CalendarItem>" tags are located within "<ConflictingMeetings>"
-        if item.getparent().tag.endswith('ConflictingMeetings'):
-          continue
 
-        self._add_event(xml=item)
+      for item in items:
+        self._add_event(xml=soap_request.M.Items(deepcopy(item)))
     else:
       log.debug(u'No calendar items found with search parameters.')
 
     return self
-  
+
   def _add_event(self, xml=None):
     log.debug(u'Adding new event to all events list.')
     event = Exchange2010CalendarEvent(service=self.service, xml=xml)
@@ -161,7 +157,7 @@ class Exchange2010CalendarEventList(object):
     if self.count > 0:
       # Now, empty out the events to prevent duplicates!
       del(self.events[:])
-      
+
       # Send the SOAP request with the list of exchange ID values.
       log.debug(u"Requesting all event details for events: {event_list}".format(event_list=str(self.event_ids)))
       body = soap_request.get_item(exchange_id=self.event_ids, format=u'AllProperties')
@@ -169,7 +165,7 @@ class Exchange2010CalendarEventList(object):
 
       # Re-parse the results for all the details!
       self._parse_response_for_all_events(response_xml)
-    
+
     return self
 
 
@@ -177,7 +173,6 @@ class Exchange2010CalendarEvent(BaseExchangeCalendarEvent):
 
   def _init_from_service(self, id):
     log.debug(u'Creating new Exchange2010CalendarEvent object from ID')
-    self.xpath_root = u'//m:Items/t:CalendarItem'
     body = soap_request.get_item(exchange_id=id, format=u'AllProperties')
     response_xml = self.service.send(body)
     properties = self._parse_response_for_get_event(response_xml)
@@ -192,11 +187,10 @@ class Exchange2010CalendarEvent(BaseExchangeCalendarEvent):
 
   def _init_from_xml(self, xml=None):
     log.debug(u'Creating new Exchange2010CalendarEvent object from XML')
-    self.xpath_root = u'.'
-    properties = self._parse_event_properties(xml)
 
+    properties = self._parse_response_for_get_event(xml)
     self._update_properties(properties)
-    self._id = xml.xpath(u'./t:ItemId/@Id', namespaces=soap_request.NAMESPACES)[0]
+    self._id, self._change_key = self._parse_id_and_change_key_from_response(xml)
 
     log.debug(u'Created new event object with ID: %s' % self._id)
     self._reset_dirty_attributes()
@@ -205,6 +199,46 @@ class Exchange2010CalendarEvent(BaseExchangeCalendarEvent):
 
   def as_json(self):
     raise NotImplementedError
+
+  def validate(self):
+
+    if self.recurrence is not None:
+
+      if not (isinstance(self.recurrence_end_date, date)):
+        raise ValueError('recurrence_end_date must be of type date')
+      elif (self.recurrence_end_date < self.start.date()):
+        raise ValueError('recurrence_end_date must be after start')
+
+      if self.recurrence == u'daily':
+
+        if not (isinstance(self.recurrence_interval, int) and 1 <= self.recurrence_interval <= 999):
+          raise ValueError('recurrence_interval must be an int in the range from 1 to 999')
+
+      elif self.recurrence == u'weekly':
+
+        if not (isinstance(self.recurrence_interval, int) and 1 <= self.recurrence_interval <= 99):
+          raise ValueError('recurrence_interval must be an int in the range from 1 to 99')
+
+        if self.recurrence_days is None:
+          raise ValueError('recurrence_days is required')
+        for day in self.recurrence_days.split(' '):
+          if day not in self.WEEKLY_DAYS:
+            raise ValueError('recurrence_days received unknown value: %s' % day)
+
+      elif self.recurrence == u'monthly':
+
+        if not (isinstance(self.recurrence_interval, int) and 1 <= self.recurrence_interval <= 99):
+          raise ValueError('recurrence_interval must be an int in the range from 1 to 99')
+
+      elif self.recurrence == u'yearly':
+
+        pass  # everything is pulled from start
+
+      else:
+
+        raise ValueError('recurrence received unknown value: %s' % self.recurrence)
+
+    super(Exchange2010CalendarEvent, self).validate()
 
   def create(self):
     """
@@ -341,6 +375,71 @@ class Exchange2010CalendarEvent(BaseExchangeCalendarEvent):
     self.calendar_id = folder_id
     return self
 
+  def get_master(self):
+    """
+      get_master()
+      :raises InvalidEventType: When this method is called on an event that is not a Occurrence type.
+
+      This will return the master event to the occurrence.
+
+      **Examples**::
+
+        event = service.calendar().get_event(id='<event_id>')
+        print event.type  # If it prints out 'Occurrence' then that means we could get the master.
+
+        master = event.get_master()
+        print master.type  # Will print out 'RecurringMaster'.
+
+
+    """
+
+    if self.type != 'Occurrence':
+      raise InvalidEventType("get_master method can only be called on a 'Occurrence' event type")
+
+    body = soap_request.get_master(exchange_id=self._id, format=u"AllProperties")
+    response_xml = self.service.send(body)
+
+    return Exchange2010CalendarEvent(service=self.service, xml=response_xml)
+
+  def get_occurrence(self, instance_index):
+    """
+      get_occurrence(instance_index)
+      :param iterable instance_index: This should be tuple or list of integers which correspond to occurrences.
+      :raises TypeError: When instance_index is not an iterable of ints.
+      :raises InvalidEventType: When this method is called on an event that is not a RecurringMaster type.
+
+      This will return a list of occurrence events.
+
+      **Examples**::
+
+        master = service.calendar().get_event(id='<event_id>')
+
+        # The following will return the first 20 occurrences in the recurrence.
+        # If there are not 20 occurrences, it will only return what it finds.
+        occurrences = master.get_occurrence(range(1,21))
+        for occurrence in occurrences:
+          print occurrence.start
+
+    """
+
+    if not all([isinstance(i, int) for i in instance_index]):
+      raise TypeError("instance_index must be an interable of type int")
+
+    if self.type != 'RecurringMaster':
+      raise InvalidEventType("get_occurrance method can only be called on a 'RecurringMaster' event type")
+
+    body = soap_request.get_occurrence(exchange_id=self._id, instance_index=instance_index, format=u"AllProperties")
+    response_xml = self.service.send(body)
+
+    items = response_xml.xpath(u'//m:GetItemResponseMessage/m:Items', namespaces=soap_request.NAMESPACES)
+    events = []
+    for item in items:
+      event = Exchange2010CalendarEvent(service=self.service, xml=deepcopy(item))
+      if event.id:
+        events.append(event)
+
+    return events
+
   def refresh_change_key(self):
 
     body = soap_request.get_item(exchange_id=self._id, format=u"IdOnly")
@@ -364,7 +463,10 @@ class Exchange2010CalendarEvent(BaseExchangeCalendarEvent):
     result = self._parse_event_properties(response)
 
     organizer_properties = self._parse_event_organizer(response)
-    result[u'organizer'] = ExchangeEventOrganizer(**organizer_properties)
+    if organizer_properties is not None:
+      if 'email' not in organizer_properties:
+        organizer_properties['email'] = None
+      result[u'organizer'] = ExchangeEventOrganizer(**organizer_properties)
 
     attendee_properties = self._parse_event_attendees(response)
     result[u'_attendees'] = self._build_resource_dictionary([ExchangeEventResponse(**attendee) for attendee in attendee_properties])
@@ -377,26 +479,101 @@ class Exchange2010CalendarEvent(BaseExchangeCalendarEvent):
   def _parse_event_properties(self, response):
 
     property_map = {
-      u'subject'      : { u'xpath' : self.xpath_root + u'/t:Subject'},  # noqa
-      u'location'     : { u'xpath' : self.xpath_root + u'/t:Location'},  # noqa
-      u'availability' : { u'xpath' : self.xpath_root + u'/t:LegacyFreeBusyStatus'},  # noqa
-      u'start'        : { u'xpath' : self.xpath_root + u'/t:Start', u'cast': u'datetime'},  # noqa
-      u'end'          : { u'xpath' : self.xpath_root + u'/t:End', u'cast': u'datetime'},  # noqa
-      u'html_body'    : { u'xpath' : self.xpath_root + u'/t:Body[@BodyType="HTML"]'},  # noqa
-      u'text_body'    : { u'xpath' : self.xpath_root + u'/t:Body[@BodyType="Text"]'},  # noqa
-      u'reminder_minutes_before_start'  : { u'xpath' : self.xpath_root + u'/t:ReminderMinutesBeforeStart', u'cast': u'int'},  # noqa
-      u'is_all_day'   : { u'xpath' : self.xpath_root + u'/t:IsAllDayEvent', u'cast': u'bool'},  # noqa
+      u'subject': {
+        u'xpath': u'//m:Items/t:CalendarItem/t:Subject',
+      },
+      u'location':
+      {
+        u'xpath': u'//m:Items/t:CalendarItem/t:Location',
+      },
+      u'availability':
+      {
+        u'xpath': u'//m:Items/t:CalendarItem/t:LegacyFreeBusyStatus',
+      },
+      u'start':
+      {
+        u'xpath': u'//m:Items/t:CalendarItem/t:Start',
+        u'cast': u'datetime',
+      },
+      u'end':
+      {
+        u'xpath': u'//m:Items/t:CalendarItem/t:End',
+        u'cast': u'datetime',
+      },
+      u'html_body':
+      {
+        u'xpath': u'//m:Items/t:CalendarItem/t:Body[@BodyType="HTML"]',
+      },
+      u'text_body':
+      {
+        u'xpath': u'//m:Items/t:CalendarItem/t:Body[@BodyType="Text"]',
+      },
+      u'_type':
+      {
+        u'xpath': u'//m:Items/t:CalendarItem/t:CalendarItemType',
+      },
+      u'reminder_minutes_before_start':
+      {
+        u'xpath': u'//m:Items/t:CalendarItem/t:ReminderMinutesBeforeStart',
+        u'cast': u'int',
+      },
+      u'is_all_day':
+      {
+        u'xpath': u'//m:Items/t:CalendarItem/t:IsAllDayEvent',
+        u'cast': u'bool',
+      },
+      u'recurrence_end_date':
+      {
+        u'xpath': u'//m:Items/t:CalendarItem/t:Recurrence/t:EndDateRecurrence/t:EndDate',
+        u'cast': u'date_only_naive',
+      },
+      u'recurrence_interval':
+      {
+        u'xpath': u'//m:Items/t:CalendarItem/t:Recurrence/*/t:Interval',
+        u'cast': u'int',
+      },
+      u'recurrence_days':
+      {
+        u'xpath': u'//m:Items/t:CalendarItem/t:Recurrence/t:WeeklyRecurrence/t:DaysOfWeek',
+      },
     }
 
-    return self.service._xpath_to_dict(element=response, property_map=property_map, namespace_map=soap_request.NAMESPACES)
+    result = self.service._xpath_to_dict(element=response, property_map=property_map, namespace_map=soap_request.NAMESPACES)
+
+    try:
+      recurrence_node = response.xpath(u'//m:Items/t:CalendarItem/t:Recurrence', namespaces=soap_request.NAMESPACES)[0]
+    except IndexError:
+      recurrence_node = None
+
+    if recurrence_node is not None:
+
+      if recurrence_node.find('t:DailyRecurrence', namespaces=soap_request.NAMESPACES) is not None:
+        result['recurrence'] = 'daily'
+
+      elif recurrence_node.find('t:WeeklyRecurrence', namespaces=soap_request.NAMESPACES) is not None:
+        result['recurrence'] = 'weekly'
+
+      elif recurrence_node.find('t:AbsoluteMonthlyRecurrence', namespaces=soap_request.NAMESPACES) is not None:
+        result['recurrence'] = 'monthly'
+
+      elif recurrence_node.find('t:AbsoluteYearlyRecurrence', namespaces=soap_request.NAMESPACES) is not None:
+        result['recurrence'] = 'yearly'
+
+    return result
 
   def _parse_event_organizer(self, response):
 
-    organizer = response.xpath(self.xpath_root + u'/t:Organizer/t:Mailbox', namespaces=soap_request.NAMESPACES)
+    organizer = response.xpath(u'//m:Items/t:CalendarItem/t:Organizer/t:Mailbox', namespaces=soap_request.NAMESPACES)
 
     property_map = {
-      u'name'      : { u'xpath' : u't:Name'},  # noqa
-      u'email'     : { u'xpath' : u't:EmailAddress'},  # noqa
+      u'name':
+      {
+        u'xpath': u't:Name'
+      },
+      u'email':
+      {
+        u'xpath': u't:EmailAddress'
+      },
     }
 
     if organizer:
@@ -406,15 +583,28 @@ class Exchange2010CalendarEvent(BaseExchangeCalendarEvent):
 
   def _parse_event_resources(self, response):
     property_map = {
-      u'name'         : { u'xpath' : u't:Mailbox/t:Name'},  # noqa
-      u'email'        : { u'xpath' : u't:Mailbox/t:EmailAddress'},  # noqa
-      u'response'     : { u'xpath' : u't:ResponseType'},  # noqa
-      u'last_response': { u'xpath' : u't:LastResponseTime', u'cast': u'datetime'},  # noqa
+      u'name':
+      {
+        u'xpath': u't:Mailbox/t:Name'
+      },
+      u'email':
+      {
+        u'xpath': u't:Mailbox/t:EmailAddress'
+      },
+      u'response':
+      {
+        u'xpath': u't:ResponseType'
+      },
+      u'last_response':
+      {
+        u'xpath': u't:LastResponseTime',
+        u'cast': u'datetime'
+      },
     }
 
     result = []
 
-    resources = response.xpath(self.xpath_root + u'/t:Resources/t:Attendee', namespaces=soap_request.NAMESPACES)
+    resources = response.xpath(u'//m:Items/t:CalendarItem/t:Resources/t:Attendee', namespaces=soap_request.NAMESPACES)
 
     for attendee in resources:
       attendee_properties = self.service._xpath_to_dict(element=attendee, property_map=property_map, namespace_map=soap_request.NAMESPACES)
@@ -430,15 +620,28 @@ class Exchange2010CalendarEvent(BaseExchangeCalendarEvent):
   def _parse_event_attendees(self, response):
 
     property_map = {
-      u'name'         : { u'xpath' : u't:Mailbox/t:Name'},  # noqa
-      u'email'        : { u'xpath' : u't:Mailbox/t:EmailAddress'},  # noqa
-      u'response'     : { u'xpath' : u't:ResponseType'},  # noqa
-      u'last_response': { u'xpath' : u't:LastResponseTime', u'cast': u'datetime'},  # noqa
+      u'name':
+      {
+        u'xpath': u't:Mailbox/t:Name'
+      },
+      u'email':
+      {
+        u'xpath': u't:Mailbox/t:EmailAddress'
+      },
+      u'response':
+      {
+        u'xpath': u't:ResponseType'
+      },
+      u'last_response':
+      {
+        u'xpath': u't:LastResponseTime',
+        u'cast': u'datetime'
+      },
     }
 
     result = []
 
-    required_attendees = response.xpath(self.xpath_root + u'/t:RequiredAttendees/t:Attendee', namespaces=soap_request.NAMESPACES)
+    required_attendees = response.xpath(u'//m:Items/t:CalendarItem/t:RequiredAttendees/t:Attendee', namespaces=soap_request.NAMESPACES)
     for attendee in required_attendees:
       attendee_properties = self.service._xpath_to_dict(element=attendee, property_map=property_map, namespace_map=soap_request.NAMESPACES)
       attendee_properties[u'required'] = True
@@ -448,7 +651,7 @@ class Exchange2010CalendarEvent(BaseExchangeCalendarEvent):
 
       result.append(attendee_properties)
 
-    optional_attendees = response.xpath(self.xpath_root + u'/t:OptionalAttendees/t:Attendee', namespaces=soap_request.NAMESPACES)
+    optional_attendees = response.xpath(u'//m:Items/t:CalendarItem/t:OptionalAttendees/t:Attendee', namespaces=soap_request.NAMESPACES)
 
     for attendee in optional_attendees:
       attendee_properties = self.service._xpath_to_dict(element=attendee, property_map=property_map, namespace_map=soap_request.NAMESPACES)
@@ -640,7 +843,7 @@ class Exchange2010Folder(BaseExchangeFolder):
   def _parse_folder_properties(self, response):
 
     property_map = {
-      u'display_name'       : { u'xpath' : u't:DisplayName'},
+      u'display_name': {u'xpath': u't:DisplayName'},
     }
 
     self._id, self._change_key = self._parse_id_and_change_key_from_response(response)
