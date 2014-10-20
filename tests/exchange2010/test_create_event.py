@@ -4,6 +4,7 @@ Licensed under the Apache License, Version 2.0 (the "License");?you may not use 
 
 Unless required by applicable law or agreed to in writing, software?distributed under the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 """
+import pickle
 import unittest
 from httpretty import HTTPretty, httprettified
 from pytest import raises
@@ -144,6 +145,30 @@ class Test_CreatingANewEvent(unittest.TestCase):
     self.event.start, self.event.end = self.event.end, self.event.start
 
     with raises(ValueError):
+      self.event.create()
+
+  def test_attendees_must_have_an_email_address_take1(self):
+
+    with raises(ValueError):
+      self.event.add_attendees(ExchangeEventAttendee(name="Bomb", email=None, required=True))
+      self.event.create()
+
+  def test_attendees_must_have_an_email_address_take2(self):
+
+    with raises(ValueError):
+      self.event.add_attendees([None])
+      self.event.create()
+
+  def test_event_reminder_must_be_int(self):
+    self.event.reminder_minutes_before_start = "not an integer"
+
+    with raises(TypeError):
+      self.event.create()
+
+  def test_event_all_day_must_be_bool(self):
+    self.event.is_all_day = "not a bool"
+
+    with raises(TypeError):
       self.event.create()
 
   def cant_delete_a_newly_created_event(self):
@@ -287,3 +312,15 @@ class Test_CreatingANewEvent(unittest.TestCase):
     self.event.create()
 
     assert RESOURCE.email in HTTPretty.last_request.body.decode('utf-8')
+
+
+  def test_events_can_be_pickled(self):
+
+    self.event.subject = "events can be pickled"
+
+    pickled_event = pickle.dumps(self.event)
+    new_event = pickle.loads(pickled_event)
+
+    assert new_event.subject == "events can be pickled"
+
+

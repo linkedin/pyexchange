@@ -337,7 +337,7 @@ class BaseExchangeCalendarEvent(object):
 
   def as_json(self):
     """ Output ourselves as JSON """
-    return json.dumps(self.__getstate__())
+    raise NotImplementedError
 
   def __getstate__(self):
     """ Implemented so pickle.dumps() and pickle.loads() work """
