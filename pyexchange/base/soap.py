@@ -7,6 +7,7 @@ Unless required by applicable law or agreed to in writing, software?distributed 
 import logging
 
 from lxml import etree
+from lxml.builder import ElementMaker
 from datetime import datetime
 from pytz import utc
 
@@ -15,6 +16,7 @@ from ..exceptions import FailedExchangeException
 SOAP_NS = u'http://schemas.xmlsoap.org/soap/envelope/'
 
 SOAP_NAMESPACES = {u's': SOAP_NS}
+S = ElementMaker(namespace=SOAP_NS, nsmap=SOAP_NAMESPACES)
 
 log = logging.getLogger('pyexchange')
 
@@ -64,10 +66,7 @@ class ExchangeServiceSOAP(object):
     return response
 
   def _wrap_soap_xml_request(self, exchange_xml):
-    root = etree.Element(u"{%s}Envelope" % SOAP_NS)
-    body = etree.SubElement(root, u"{%s}Body" % SOAP_NS)
-    body.append(exchange_xml)
-
+    root = S.Envelope(S.Body(exchange_xml))
     return root
 
   def _parse_date(self, date_string):
