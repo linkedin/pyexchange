@@ -38,6 +38,10 @@ class Test_ParseEventListResponseData(unittest.TestCase):
     def test_canary(self):
         assert self.event_list is not None
 
+    def test_dates_are_in_datetime_format(self):
+        assert 'StartDate="%s"' % TEST_EVENT_LIST_START.strftime(EXCHANGE_DATETIME_FORMAT) in HTTPretty.last_request.body.decode('utf-8')
+        assert 'EndDate="%s"' % TEST_EVENT_LIST_END.strftime(EXCHANGE_DATETIME_FORMAT) in HTTPretty.last_request.body.decode('utf-8')
+
     def test_event_count(self):
         assert self.event_list.count == 3
 

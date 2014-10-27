@@ -116,8 +116,8 @@ def get_item(exchange_id, format=u"Default"):
   return root
 
 def get_calendar_items(format=u"Default", start=None, end=None, max_entries=999999):
-  start = start.strftime(EXCHANGE_DATE_FORMAT)
-  end = end.strftime(EXCHANGE_DATE_FORMAT)
+  start = start.strftime(EXCHANGE_DATETIME_FORMAT)
+  end = end.strftime(EXCHANGE_DATETIME_FORMAT)
 
   root = M.FindItem(
     {u'Traversal': u'Shallow'},
