@@ -92,8 +92,8 @@ To create an event, use the ``new_event`` method::
     )
 
     # ...or afterwards
-    event.start=datetime(2013,1,1,15,0,0, tzinfo=timezone("US/Pacific")),
-    event.end=datetime(2013,1,1,21,0,0, tzinfo=timezone("US/Pacific"))
+    event.start=timezone("US/Pacific").localize(datetime(2013,1,1,15,0,0))
+    event.end=timezone("US/Pacific").localize(datetime(2013,1,1,21,0,0))
 
     event.html_body = u"""<html>
         <body>
@@ -181,8 +181,8 @@ Listing events
 To list events between two dates, simply do::
 
     events = my_calendar.list_events(
-        start=datetime(2014, 10, 1, 11, 0, 0, tzinfo=timezone("US/Eastern")),
-        end=datetime(2014, 10, 29, 11, 0, 0, tzinfo=timezone("US/Eastern")),
+        start=timezone("US/Eastern").localize(datetime(2014, 10, 1, 11, 0, 0)),
+        end=timezone("US/Eastern").localize(datetime(2014, 10, 29, 11, 0, 0)),
         details=True
     )
 
@@ -247,8 +247,8 @@ You can pickle events if you need to serialize them. (We do this to send invites
     event = service.calendar().new_event()
     
     event.subject = u"80s Movie Night"
-    event.start=datetime(2013,1,1,15,0,0, tzinfo=timezone("US/Pacific"))
-    event.end=datetime(2013,1,1,21,0,0, tzinfo=timezone("US/Pacific"))
+    event.start=timezone("US/Pacific").localize(datetime(2013,1,1,15,0,0))
+    event.end=timezone("US/Pacific").localize(datetime(2013,1,1,21,0,0))
 
     # Pickle event
     pickled_event = pickle.dumps(event)
