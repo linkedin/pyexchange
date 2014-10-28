@@ -27,7 +27,7 @@ Running the tests
 
 Make sure you have the development libraries installed, then run::
 
-    nosetests
+    py.test tests
 
 Building documentation
 ``````````````````````
@@ -52,18 +52,19 @@ The code follows `PEP8
 * Line length: use your best judgment. (We all have big monitors now, no need to limit to 80 columns.)
 
 Your code should pass `flake8
-<http://flake8.readthedocs.org/>`_ unless readability is hurt, you have a good reason, or we really like you. Configuration is in ``setup.cfg``.
+<http://flake8.readthedocs.org/>`_ unless readability is hurt. Configuration is in ``setup.cfg``.
 
-Python 3
-````````
+Python versions
+```````````````
 
-If possible, your code should be compatible with Python 3.3.
+Your code should work with all versions of Python 2.6 and 2.7. If possible, your code should be compatible with Python 3.3+.
+Travis will check that for you automatically.
 
 
 Tests
 `````
 
-Submitted code should have tests covering the code submitted.
+Submitted code should have tests covering the code submitted, and your code should pass the Travis build.
 
 All fixture data should be unicode, following the guidelines in Ned Batchelder's fantastic `Pragmatic Unicode <http://nedbatchelder.com/text/unipain.html>`_.
 
