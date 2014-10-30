@@ -6,11 +6,6 @@ Unless required by applicable law or agreed to in writing, software?distributed 
 """
 from collections import namedtuple
 
-try:
-  import simplejson as json
-except ImportError:
-  import json
-
 ExchangeEventOrganizer = namedtuple('ExchangeEventOrganizer', ['name', 'email'])
 ExchangeEventAttendee = namedtuple('ExchangeEventAttendee', ['name', 'email', 'required'])
 ExchangeEventResponse = namedtuple('ExchangeEventResponse', ['name', 'email', 'response', 'last_response', 'required'])
