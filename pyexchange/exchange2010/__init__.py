@@ -474,6 +474,8 @@ class Exchange2010CalendarEvent(BaseExchangeCalendarEvent):
     resource_properties = self._parse_event_resources(response)
     result[u'_resources'] = self._build_resource_dictionary([ExchangeEventResponse(**resource) for resource in resource_properties])
 
+    result['_conflicting_event_ids'] = self._parse_event_conflicts(response)
+
     return result
 
   def _parse_event_properties(self, response):
@@ -663,6 +665,10 @@ class Exchange2010CalendarEvent(BaseExchangeCalendarEvent):
       result.append(attendee_properties)
 
     return result
+
+  def _parse_event_conflicts(self, response):
+    conflicting_ids = response.xpath(u'//m:Items/t:CalendarItem/t:ConflictingMeetings/t:CalendarItem/t:ItemId', namespaces=soap_request.NAMESPACES)
+    return [id_element.get(u"Id") for id_element in conflicting_ids]
 
 
 class Exchange2010FolderService(BaseExchangeFolderService):

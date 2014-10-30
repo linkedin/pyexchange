@@ -69,6 +69,8 @@ class BaseExchangeCalendarEvent(object):
   _attendees = {}  # people attending
   _resources = {}  # conference rooms attending
 
+  _conflicting_event_ids = []
+
   _track_dirty_attributes = False
   _dirty_attributes = set()  # any attributes that have changed, and we need to update in Exchange
 
@@ -110,6 +112,11 @@ class BaseExchangeCalendarEvent(object):
   def id(self):
     """ **Read-only.** The internal id Exchange uses to refer to this event. """
     return self._id
+
+  @property
+  def conflicting_event_ids(self):
+    """ **Read-only.** The internal id Exchange uses to refer to conflicting events. """
+    return self._conflicting_event_ids
 
   @property
   def change_key(self):
