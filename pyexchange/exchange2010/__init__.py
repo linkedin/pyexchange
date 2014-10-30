@@ -440,6 +440,20 @@ class Exchange2010CalendarEvent(BaseExchangeCalendarEvent):
 
     return events
 
+  def conflicting_events(self):
+
+    body = soap_request.get_item(exchange_id=self.conflicting_event_ids, format="AllProperties")
+    response_xml = self.service.send(body)
+
+    items = response_xml.xpath(u'//m:GetItemResponseMessage/m:Items', namespaces=soap_request.NAMESPACES)
+    events = []
+    for item in items:
+      event = Exchange2010CalendarEvent(service=self.service, xml=deepcopy(item))
+      if event.id:
+        events.append(event)
+
+    return events
+
   def refresh_change_key(self):
 
     body = soap_request.get_item(exchange_id=self._id, format=u"IdOnly")
