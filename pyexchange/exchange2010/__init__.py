@@ -442,6 +442,9 @@ class Exchange2010CalendarEvent(BaseExchangeCalendarEvent):
 
   def conflicting_events(self):
 
+    if not self.conflicting_event_ids:
+      return []
+
     body = soap_request.get_item(exchange_id=self.conflicting_event_ids, format="AllProperties")
     response_xml = self.service.send(body)
 
