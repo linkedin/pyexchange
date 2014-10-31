@@ -9,7 +9,7 @@ from datetime import datetime, timedelta, date
 from pytz import utc
 from collections import namedtuple
 from pyexchange.base.calendar import ExchangeEventOrganizer, ExchangeEventResponse, RESPONSE_ACCEPTED, RESPONSE_DECLINED, RESPONSE_TENTATIVE, RESPONSE_UNKNOWN
-from pyexchange.exchange2010.soap_request import EXCHANGE_DATE_FORMAT  # noqa
+from pyexchange.exchange2010.soap_request import EXCHANGE_DATE_FORMAT, EXCHANGE_DATETIME_FORMAT  # noqa
 
 # don't remove this - a few tests import stuff this way
 from ..fixtures import *  # noqa
