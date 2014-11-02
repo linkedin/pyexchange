@@ -441,6 +441,18 @@ class Exchange2010CalendarEvent(BaseExchangeCalendarEvent):
     return events
 
   def conflicting_events(self):
+    """
+      conflicting_events()
+
+      This will return a list of conflicting events.
+
+      **Example**::
+
+        event = service.calendar().get_event(id='<event_id>')
+        for conflict in event.conflicting_events():
+          print conflict.subject
+
+    """
 
     if not self.conflicting_event_ids:
       return []

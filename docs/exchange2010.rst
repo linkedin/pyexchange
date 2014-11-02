@@ -7,7 +7,7 @@ Exchange2010CalendarEvent
 =========================
 
 .. autoclass:: Exchange2010CalendarEvent
-    :members: create, update, cancel, resend_invitations, move_to, get_occurrence, get_master
+    :members: create, update, cancel, resend_invitations, move_to, conflicting_events, get_occurrence, get_master
 
     .. attribute:: id
 
@@ -140,6 +140,10 @@ Exchange2010CalendarEvent
 
       Used in a weekly recurrence to specify which days of the week to schedule the event.  This should be a
       string of days separated by spaces.  ex. "Monday Wednesday"
+
+    .. attribute:: conflicting_event_ids
+
+      **Read-only.** The internal id Exchange uses to refer to conflicting events.
 
     .. method:: add_attendee(attendees, required=True)
 
