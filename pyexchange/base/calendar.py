@@ -337,6 +337,9 @@ class BaseExchangeCalendarEvent(object):
   def get_occurrance(self, instance_index):
     raise NotImplementedError
 
+  def conflicting_events(self):
+    raise NotImplementedError
+
   def as_json(self):
     """ Output ourselves as JSON """
     raise NotImplementedError
