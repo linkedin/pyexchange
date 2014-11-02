@@ -62,6 +62,17 @@ TEST_EVENT = EventFixture(id=u'AABBCCDDEEFF',
                           end=datetime(year=2050, month=5, day=20, hour=21, minute=43, second=51, tzinfo=utc),
                           body=u'rärr ï äm ä dïnösäür')
 
+TEST_CONFLICT_EVENT = EventFixture(
+  id=u'aabbccddeeff',
+  change_key=u'gghhiijjkkllmm',
+  calendar_id='calendar',
+  subject=u'mч cσnflíctíng єvєnt',
+  location=u'söüth päċïfïċ (40.1°S 123.7°W)',
+  start=datetime(year=2050, month=5, day=20, hour=20, minute=42, second=50, tzinfo=utc),
+  end=datetime(year=2050, month=5, day=20, hour=21, minute=43, second=51, tzinfo=utc),
+  body=u'rärr ï äm ä dïnösäür',
+)
+
 TEST_EVENT_LIST_START = datetime(year=2050, month=4, day=20, hour=20, minute=42, second=50)
 TEST_EVENT_LIST_END = datetime(year=2050, month=5, day=20, hour=21, minute=43, second=51)
 
@@ -330,12 +341,12 @@ GET_ITEM_RESPONSE = u"""<s:Envelope xmlns:s="http://schemas.xmlsoap.org/soap/env
               <t:AdjacentMeetingCount>1</t:AdjacentMeetingCount>
               <t:ConflictingMeetings>
                 <t:CalendarItem>
-                  <t:ItemId Id="rarrrrr" ChangeKey="blarg"/>
-                  <t:Subject>My other awesome event</t:Subject>
-                  <t:Start>{event.start:%Y-%m-%dT%H:%M:%SZ}</t:Start>
-                  <t:End>{event.end:%Y-%m-%dT%H:%M:%SZ}</t:End>
+                  <t:ItemId Id="{conflict_event.id}" ChangeKey="{conflict_event.change_key}"/>
+                  <t:Subject>{conflict_event.subject}</t:Subject>
+                  <t:Start>{conflict_event.start:%Y-%m-%dT%H:%M:%SZ}</t:Start>
+                  <t:End>{conflict_event.end:%Y-%m-%dT%H:%M:%SZ}</t:End>
                   <t:LegacyFreeBusyStatus>Busy</t:LegacyFreeBusyStatus>
-                  <t:Location>Nowhere special</t:Location>
+                  <t:Location>{conflict_event.location}</t:Location>
                 </t:CalendarItem>
               </t:ConflictingMeetings>
               <t:AdjacentMeetings>
@@ -369,8 +380,106 @@ GET_ITEM_RESPONSE = u"""<s:Envelope xmlns:s="http://schemas.xmlsoap.org/soap/env
            optional_tentative=PERSON_OPTIONAL_TENTATIVE,
            optional_declined=PERSON_OPTIONAL_DECLINED,
            optional_unknown=PERSON_OPTIONAL_UNKNOWN,
-           resource=RESOURCE
+           resource=RESOURCE,
+           conflict_event=TEST_CONFLICT_EVENT,
            )
+
+CONFLICTING_EVENTS_RESPONSE = u"""<s:Envelope xmlns:s="http://schemas.xmlsoap.org/soap/envelope/">
+  <s:Header>
+    <h:ServerVersionInfo xmlns:h="http://schemas.microsoft.com/exchange/services/2006/types" xmlns="http://schemas.microsoft.com/exchange/services/2006/types" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" MajorVersion="14" MinorVersion="2" MajorBuildNumber="328" MinorBuildNumber="11"/>
+  </s:Header>
+  <s:Body xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+    <m:GetItemResponse xmlns:m="http://schemas.microsoft.com/exchange/services/2006/messages" xmlns:t="http://schemas.microsoft.com/exchange/services/2006/types">
+      <m:ResponseMessages>
+        <m:GetItemResponseMessage ResponseClass="Success">
+          <m:ResponseCode>NoError</m:ResponseCode>
+          <m:Items>
+            <t:CalendarItem>
+              <t:ItemId Id="{event.id}" ChangeKey="{event.change_key}"/>
+              <t:ParentFolderId Id="fooo" ChangeKey="bar"/>
+              <t:ItemClass>IPM.Appointment</t:ItemClass>
+              <t:Subject>{event.subject}</t:Subject>
+              <t:Sensitivity>Normal</t:Sensitivity>
+              <t:Body BodyType="HTML">{event.body}</t:Body>
+              <t:Body BodyType="Text">{event.body}</t:Body>
+              <t:DateTimeReceived>{event.start:%Y-%m-%dT%H:%M:%SZ}</t:DateTimeReceived>
+              <t:Size>1935</t:Size>
+              <t:Importance>Normal</t:Importance>
+              <t:IsSubmitted>false</t:IsSubmitted>
+              <t:IsDraft>false</t:IsDraft>
+              <t:IsFromMe>false</t:IsFromMe>
+              <t:IsResend>false</t:IsResend>
+              <t:IsUnmodified>false</t:IsUnmodified>
+              <t:DateTimeSent>{event.start:%Y-%m-%dT%H:%M:%SZ}</t:DateTimeSent>
+              <t:DateTimeCreated>{event.start:%Y-%m-%dT%H:%M:%SZ}</t:DateTimeCreated>
+              <t:ResponseObjects>
+                <t:CancelCalendarItem/>
+                <t:ForwardItem/>
+              </t:ResponseObjects>
+              <t:ReminderDueBy>{event.start:%Y-%m-%dT%H:%M:%SZ}</t:ReminderDueBy>
+              <t:ReminderIsSet>true</t:ReminderIsSet>
+              <t:ReminderMinutesBeforeStart>15</t:ReminderMinutesBeforeStart>
+              <t:DisplayCc/>
+              <t:DisplayTo/>
+              <t:HasAttachments>false</t:HasAttachments>
+              <t:Culture>en-US</t:Culture>
+              <t:Start>{event.start:%Y-%m-%dT%H:%M:%SZ}</t:Start>
+              <t:End>{event.end:%Y-%m-%dT%H:%M:%SZ}</t:End>
+              <t:IsAllDayEvent>false</t:IsAllDayEvent>
+              <t:LegacyFreeBusyStatus>Busy</t:LegacyFreeBusyStatus>
+              <t:Location>{event.location}</t:Location>
+              <t:IsMeeting>true</t:IsMeeting>
+              <t:IsCancelled>false</t:IsCancelled>
+              <t:IsRecurring>false</t:IsRecurring>
+              <t:MeetingRequestWasSent>false</t:MeetingRequestWasSent>
+              <t:IsResponseRequested>true</t:IsResponseRequested>
+              <t:CalendarItemType>Single</t:CalendarItemType>
+              <t:MyResponseType>Organizer</t:MyResponseType>
+              <t:Organizer>
+                <t:Mailbox>
+                  <t:Name>{organizer.name}</t:Name>
+                  <t:EmailAddress>{organizer.email}</t:EmailAddress>
+                  <t:RoutingType>SMTP</t:RoutingType>
+                </t:Mailbox>
+              </t:Organizer>
+              <t:ConflictingMeetingCount>1</t:ConflictingMeetingCount>
+              <t:AdjacentMeetingCount>1</t:AdjacentMeetingCount>
+              <t:ConflictingMeetings>
+                <t:CalendarItem>
+                  <t:ItemId Id="{conflict_event.id}" ChangeKey="{conflict_event.change_key}"/>
+                  <t:Subject>{conflict_event.subject}</t:Subject>
+                  <t:Start>{conflict_event.start:%Y-%m-%dT%H:%M:%SZ}</t:Start>
+                  <t:End>{conflict_event.end:%Y-%m-%dT%H:%M:%SZ}</t:End>
+                  <t:LegacyFreeBusyStatus>Busy</t:LegacyFreeBusyStatus>
+                  <t:Location>{conflict_event.location}</t:Location>
+                </t:CalendarItem>
+              </t:ConflictingMeetings>
+              <t:AdjacentMeetings>
+                <t:CalendarItem>
+                  <t:ItemId Id="dinosaur" ChangeKey="goesrarrr"/>
+                  <t:Subject>my other OTHER awesome event</t:Subject>
+                  <t:Start>{event.start:%Y-%m-%dT%H:%M:%SZ}</t:Start>
+                  <t:End>{event.end:%Y-%m-%dT%H:%M:%SZ}</t:End>
+                  <t:LegacyFreeBusyStatus>Busy</t:LegacyFreeBusyStatus>
+                  <t:Location>Outside</t:Location>
+                </t:CalendarItem>
+              </t:AdjacentMeetings>
+              <t:Duration>PT1H</t:Duration>
+              <t:TimeZone>(UTC-08:00) Pacific Time (US &amp; Canada)</t:TimeZone>
+              <t:AppointmentSequenceNumber>0</t:AppointmentSequenceNumber>
+              <t:AppointmentState>1</t:AppointmentState>
+            </t:CalendarItem>
+          </m:Items>
+        </m:GetItemResponseMessage>
+      </m:ResponseMessages>
+    </m:GetItemResponse>
+  </s:Body>
+</s:Envelope>
+""".format(
+  event=TEST_CONFLICT_EVENT,
+  organizer=ORGANIZER,
+  conflict_event=TEST_EVENT,
+)
 
 GET_ITEM_RESPONSE_ID_ONLY = u"""<soap:Envelope xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/"
                xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
