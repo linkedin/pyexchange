@@ -98,6 +98,26 @@ class Test_ParseEventResponseData(unittest.TestCase):
   def test_optional_attendees_are_optional(self):
     assert sorted(self.event.optional_attendees) == sorted(OPTIONAL_PEOPLE)
 
+  def test_conflicting_event_ids(self):
+    assert self.event.conflicting_event_ids[0] == TEST_CONFLICT_EVENT.id
+
+  @httprettified
+  def test_conflicting_events(self):
+    HTTPretty.register_uri(
+      HTTPretty.POST, FAKE_EXCHANGE_URL,
+      body=CONFLICTING_EVENTS_RESPONSE.encode('utf-8'),
+      content_type='text/xml; charset=utf-8',
+    )
+    conflicting_events = self.event.conflicting_events()
+    assert conflicting_events[0].id == TEST_CONFLICT_EVENT.id
+    assert conflicting_events[0].calendar_id == TEST_CONFLICT_EVENT.calendar_id
+    assert conflicting_events[0].subject == TEST_CONFLICT_EVENT.subject
+    assert conflicting_events[0].location == TEST_CONFLICT_EVENT.location
+    assert conflicting_events[0].start == TEST_CONFLICT_EVENT.start
+    assert conflicting_events[0].end == TEST_CONFLICT_EVENT.end
+    assert conflicting_events[0].body == TEST_CONFLICT_EVENT.body
+    assert conflicting_events[0].conflicting_event_ids[0] == TEST_EVENT.id
+
 
 class Test_FailingToGetEvents(unittest.TestCase):
 
@@ -149,6 +169,7 @@ class Test_FailingToGetEvents(unittest.TestCase):
 
     with raises(FailedExchangeException):
      self.service.calendar().get_event(id=TEST_EVENT.id)
+
 
 class Test_GetRecurringMasterEvents(unittest.TestCase):
   service = None
@@ -402,3 +423,35 @@ class Test_GetMaster(unittest.TestCase):
     master = self.event.get_master()
     with raises(InvalidEventType):
       master.get_master()
+
+
+class Test_GetConflictingEventsEmpty(unittest.TestCase):
+  event = None
+
+  @classmethod
+  def setUpClass(self):
+
+    @activate  # this decorator doesn't play nice with @classmethod
+    def fake_event_request():
+
+      service = Exchange2010Service(
+        connection=ExchangeNTLMAuthConnection(
+          url=FAKE_EXCHANGE_URL, username=FAKE_EXCHANGE_USERNAME, password=FAKE_EXCHANGE_PASSWORD
+        )
+      )
+
+      HTTPretty.register_uri(
+        HTTPretty.POST, FAKE_EXCHANGE_URL,
+        body=GET_RECURRING_MASTER_DAILY_EVENT.encode('utf-8'),
+        content_type='text/xml; charset=utf-8',
+      )
+
+      return service.calendar().get_event(id=TEST_EVENT.id)
+
+    self.event = fake_event_request()
+
+  def test_conflicting_event_ids_empty(self):
+    assert len(self.event.conflicting_event_ids) == 0
+
+  def test_conflicting_events_empty(self):
+    assert len(self.event.conflicting_events()) == 0

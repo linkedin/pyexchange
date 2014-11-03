@@ -6,11 +6,6 @@ Unless required by applicable law or agreed to in writing, software?distributed 
 """
 from collections import namedtuple
 
-try:
-  import simplejson as json
-except ImportError:
-  import json
-
 ExchangeEventOrganizer = namedtuple('ExchangeEventOrganizer', ['name', 'email'])
 ExchangeEventAttendee = namedtuple('ExchangeEventAttendee', ['name', 'email', 'required'])
 ExchangeEventResponse = namedtuple('ExchangeEventResponse', ['name', 'email', 'response', 'last_response', 'required'])
@@ -69,6 +64,8 @@ class BaseExchangeCalendarEvent(object):
   _attendees = {}  # people attending
   _resources = {}  # conference rooms attending
 
+  _conflicting_event_ids = []
+
   _track_dirty_attributes = False
   _dirty_attributes = set()  # any attributes that have changed, and we need to update in Exchange
 
@@ -110,6 +107,11 @@ class BaseExchangeCalendarEvent(object):
   def id(self):
     """ **Read-only.** The internal id Exchange uses to refer to this event. """
     return self._id
+
+  @property
+  def conflicting_event_ids(self):
+    """ **Read-only.** The internal id Exchange uses to refer to conflicting events. """
+    return self._conflicting_event_ids
 
   @property
   def change_key(self):
@@ -333,6 +335,9 @@ class BaseExchangeCalendarEvent(object):
     raise NotImplementedError
 
   def get_occurrance(self, instance_index):
+    raise NotImplementedError
+
+  def conflicting_events(self):
     raise NotImplementedError
 
   def as_json(self):
