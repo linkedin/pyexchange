@@ -88,15 +88,15 @@ class Exchange2010CalendarService(BaseExchangeCalendarService):
   def new_event(self, **properties):
     return Exchange2010CalendarEvent(service=self.service, calendar_id=self.calendar_id, **properties)
 
-  def list_events(self, start=None, end=None, details=False):
-    return Exchange2010CalendarEventList(service=self.service, start=start, end=end, details=details)
+  def list_events(self, start=None, end=None, details=False, delegate_for=None):
+    return Exchange2010CalendarEventList(service=self.service, start=start, end=end, details=details, delegate_for=None)
 
 
 class Exchange2010CalendarEventList(object):
   """
   Creates & Stores a list of Exchange2010CalendarEvent items in the "self.events" variable.
   """
-  def __init__(self, service=None, start=None, end=None, details=False):
+  def __init__(self, service=None, start=None, end=None, details=False, delegate_for=None):
     self.service = service
     self.count = 0
     self.start = start
@@ -106,7 +106,7 @@ class Exchange2010CalendarEventList(object):
     self.details = details
 
     # This request uses a Calendar-specific query between two dates.
-    body = soap_request.get_calendar_items(format=u'AllProperties', start=self.start, end=self.end)
+    body = soap_request.get_calendar_items(format=u'AllProperties', start=self.start, end=self.end, delegate_for=self.delegate_for)
     response_xml = self.service.send(body)
     self._parse_response_for_all_events(response_xml)
 
