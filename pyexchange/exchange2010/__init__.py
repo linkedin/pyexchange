@@ -128,6 +128,8 @@ class Exchange2010CalendarEventList(object):
     This function will retrieve *most* of the event data, excluding Organizer & Attendee details
     """
     items = response.xpath(u'//m:FindItemResponseMessage/m:RootFolder/t:Items/t:CalendarItem', namespaces=soap_request.NAMESPACES)
+    if not items:
+      items = response.xpath(u'//m:GetItemResponseMessage/m:Items/t:CalendarItem', namespaces=soap_request.NAMESPACES)
     if items:
       self.count = len(items)
       log.debug(u'Found %s items' % self.count)
