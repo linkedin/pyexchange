@@ -10,6 +10,7 @@ from ..base.calendar import BaseExchangeCalendarEvent, BaseExchangeCalendarServi
 from ..base.folder import BaseExchangeFolder, BaseExchangeFolderService
 from ..base.soap import ExchangeServiceSOAP
 from ..exceptions import FailedExchangeException, ExchangeStaleChangeKeyException, ExchangeItemNotFoundException, ExchangeInternalServerTransientErrorException, ExchangeIrresolvableConflictException, InvalidEventType
+from ..compat import BASESTRING_TYPES
 
 from . import soap_request
 
@@ -360,7 +361,7 @@ class Exchange2010CalendarEvent(BaseExchangeCalendarEvent):
     if not folder_id:
       raise TypeError(u"You can't move an event to a non-existant folder")
 
-    if not isinstance(folder_id, basestring):
+    if not isinstance(folder_id, BASESTRING_TYPES):
       raise TypeError(u"folder_id must be a string")
 
     if not self.id:
@@ -855,7 +856,7 @@ class Exchange2010Folder(BaseExchangeFolder):
     if not folder_id:
       raise TypeError(u"You can't move to a non-existant folder")
 
-    if not isinstance(folder_id, basestring):
+    if not isinstance(folder_id, BASESTRING_TYPES):
       raise TypeError(u"folder_id must be a string")
 
     if not self.id:
