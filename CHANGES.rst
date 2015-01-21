@@ -76,7 +76,16 @@ Alejandro Ramirez (got-root):
 
 * Integrated with travis (finally).
 
+0.5.1 (Nov 17, 2014)
+--------------------
 
+* Bugfix release because we broke stuff :(
+
+
+0.6 (January 20, 2015)
+----------------------
+
+* Python 3 conversion complete! yaaaaaaaaaay
 
 
 

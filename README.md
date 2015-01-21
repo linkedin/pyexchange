@@ -17,29 +17,13 @@ Go to https://pyexchange.readthedocs.org for the most recent, up-to-date version
 Installation
 ------------
 
-PyExchange supports Python 2.6 and 2.7. Our code is compatible with 3.3+, but see the notes below on getting it working. Non CPython implementations may work but are not tested.
+PyExchange supports Python 2.6 and 2.7, and as of 0.6, is Python 3 compatible. Non CPython implementations may work but are not tested.
 
 We support Exchange Server version 2010. Others will likely work but are not tested.
 
 To install, use pip:
 
     pip install pyexchange
-
-PyExchange requires [lxml](http://lxml.de) for XML handling. This will be installed by pip on most systems. If you run into problems, please see lxml's [installation instructions](http://lxml.de/installation.html).
-
-To install from source, download the source code, then run:
-
-    python setup.py install
-
-
-Python 3
---------
-
-We use the library [python-ntlm](https://code.google.com/p/python-ntlm/) for authentication. As of July 2013, they have an experimental Python 3 port but it's not in PyPI for easy download.
-
-To the best of our knowledge, PyExchange works with this port and is Python 3.3 compatible. But since this isn't easily testable, we can't officially support Python 3 at the moment. 
-
-Help in this area would be appreciated.
 
 About
 -----
