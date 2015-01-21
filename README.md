@@ -44,8 +44,3 @@ And everybody lived happily ever after.
 
 THE END
 
-
-
-
-
-
