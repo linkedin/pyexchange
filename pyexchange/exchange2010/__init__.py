@@ -647,7 +647,8 @@ class Exchange2010CalendarEvent(BaseExchangeCalendarEvent):
       if u'last_response' not in attendee_properties:
         attendee_properties[u'last_response'] = None
 
-      result.append(attendee_properties)
+      if u'email' in attendee_properties:
+        result.append(attendee_properties)
 
     return result
 
@@ -683,7 +684,8 @@ class Exchange2010CalendarEvent(BaseExchangeCalendarEvent):
       if u'last_response' not in attendee_properties:
         attendee_properties[u'last_response'] = None
 
-      result.append(attendee_properties)
+      if u'email' in attendee_properties:
+        result.append(attendee_properties)
 
     optional_attendees = response.xpath(u'//m:Items/t:CalendarItem/t:OptionalAttendees/t:Attendee', namespaces=soap_request.NAMESPACES)
 
@@ -694,7 +696,8 @@ class Exchange2010CalendarEvent(BaseExchangeCalendarEvent):
       if u'last_response' not in attendee_properties:
         attendee_properties[u'last_response'] = None
 
-      result.append(attendee_properties)
+      if u'email' in attendee_properties:
+        result.append(attendee_properties)
 
     return result
 
