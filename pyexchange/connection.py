@@ -24,11 +24,11 @@ class ExchangeBaseConnection(object):
 class ExchangeNTLMAuthConnection(ExchangeBaseConnection):
   """ Connection to Exchange that uses NTLM authentication """
 
-  def __init__(self, url, username, password, **kwargs):
+  def __init__(self, url, username, password, verify_certificate=True, **kwargs):
     self.url = url
     self.username = username
     self.password = password
-
+    self.verify_certificate = verify_certificate
     self.handler = None
     self.session = None
     self.password_manager = None
@@ -61,7 +61,7 @@ class ExchangeNTLMAuthConnection(ExchangeBaseConnection):
       self.session = self.build_session()
 
     try:
-      response = self.session.post(self.url, data=body, headers=headers)
+      response = self.session.post(self.url, data=body, headers=headers, verify = self.verify_certificate)
       response.raise_for_status()
     except requests.exceptions.RequestException as err:
       log.debug(err.response.content)
